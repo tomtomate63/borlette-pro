@@ -1,0 +1,118 @@
+{
+  "agents": [
+    {
+      "id": 1,
+      "username": "tabarre01",
+      "password": "1234",
+      "name": "Jacques Pierre",
+      "prenom": "Jacques",
+      "nom": "Pierre",
+      "agentName": "Agent Tabarre 01",
+      "zone": "tabarre",
+      "isBlocked": false,
+      "totalSales": 30,
+      "balance": 30,
+      "commission": 1.5,
+      "commissionRate": 0.05,
+      "dateNaissance": "02/08/1990",
+      "carteIdentite": "0000000000",
+      "permis": "UU-00000-BC",
+      "dateInscription": "2026-03-21T04:34:39.437Z"
+    },
+    {
+      "id": 2,
+      "username": "tabarre02",
+      "password": "1234",
+      "name": "Marie Jean",
+      "prenom": "Marie",
+      "nom": "Jean",
+      "agentName": "Agent Tabarre 02",
+      "zone": "tabarre",
+      "isBlocked": false,
+      "totalSales": 0,
+      "balance": 0,
+      "commission": 0,
+      "commissionRate": 0.05,
+      "dateNaissance": "15/05/1985",
+      "carteIdentite": "1111111111",
+      "permis": "VV-12345-AC",
+      "dateInscription": "2026-03-21T04:34:39.447Z"
+    },
+    {
+      "id": 3,
+      "username": "admin",
+      "password": "admin123",
+      "name": "Administrateur",
+      "isAdmin": true
+    },
+    {
+      "id": 4,
+      "username": "tabarre06",
+      "password": "1234",
+      "name": "Charly Sheen",
+      "prenom": "Charly",
+      "nom": "Sheen",
+      "agentName": "tab06",
+      "zone": "tabarre",
+      "isBlocked": false,
+      "totalSales": 0,
+      "balance": 0,
+      "commission": 0,
+      "commissionRate": 0.05,
+      "dateNaissance": "1990-01-01",
+      "carteIdentite": "10020003000",
+      "permis": "UU-35690-BC",
+      "dateInscription": "2026-03-21T04:48:56.201Z"
+    }
+  ],
+  "tickets": [
+    {
+      "id": "TKT-20260321-2129",
+      "agentId": 1,
+      "items": [
+        {
+          "number": "000",
+          "amount": 10,
+          "ticketType": "three"
+        },
+        {
+          "number": "25",
+          "amount": 10,
+          "ticketType": "simple"
+        },
+        {
+          "number": "33",
+          "amount": 10,
+          "ticketType": "simple"
+        }
+      ],
+      "totalAmount": 30,
+      "drawingName": "New York Midday",
+      "notes": "",
+      "date": "2026-03-21T04:41:04.810Z",
+      "isWinner": false,
+      "winAmount": 0,
+      "winItems": [],
+      "isCancelled": false,
+      "cancelledBy": null,
+      "cancelledAt": null
+    }
+  ],
+  "drawings": [],
+  "zones": [
+    "tabarre",
+    "delmas",
+    "petion-ville",
+    "bois-moquette",
+    "dezermith",
+    "fermathe"
+  ],
+  "settings": {
+    "commissionRate": 0.05,
+    "winRates": {
+      "first": 60,
+      "second": 20,
+      "third": 10
+    }
+  }
+}

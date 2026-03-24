@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Borlette Agent - POS Professionnel</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Bouton menu hamburger pour mobile -->
+<button class="menu-toggle" onclick="toggleSidebar()" style="display: none;">
+    <i class="fas fa-bars"></i>
+</button>
+<div class="sidebar-overlay" onclick="closeSidebar()"></div>
+    <div id="loginPage" class="login-page">
+        <div class="login-box">
+            <h1><i class="fas fa-dice"></i> Borlette POS</h1>
+            <p>Agent de vente professionnel</p>
+            <input type="text" id="username" placeholder="Identifiant">
+            <input type="password" id="password" placeholder="Mot de passe">
+            <button id="loginBtn" onclick="login()"><i class="fas fa-sign-in-alt"></i> SE CONNECTER</button>
+            <div id="errorMsg" class="error"></div>
+        </div>
+    </div>
+
+    <div id="appPage" class="app-page" style="display: none;">
+        <div class="header">
+            <div class="header-left">
+                <h2><i class="fas fa-dice"></i> Borlette Express</h2>
+                <p class="header-date" id="currentDate"></p>
+            </div>
+            <div class="header-right">
+                <div id="agentInfo" class="agent-info"></div>
+                <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
+            </div>
+        </div>
+
+        <div id="blockedAlert" class="alert" style="display: none;">
+            <i class="fas fa-ban"></i> ⚠️ Votre POS est bloqué. Contactez l'administrateur.
+        </div>
+
+        <!-- Statistiques Agent -->
+        <div class="stats-bar">
+            <div class="stat-box">
+                <i class="fas fa-chart-line stat-icon"></i>
+                <div class="stat-label">💰 Ventes</div>
+                <div class="stat-value" id="statSales">0 GDS</div>
+            </div>
+            <div class="stat-box">
+                <i class="fas fa-trophy stat-icon"></i>
+                <div class="stat-label">🏆 Gains</div>
+                <div class="stat-value" id="statWins">0 GDS</div>
+            </div>
+            <div class="stat-box">
+                <i class="fas fa-chart-line stat-icon"></i>
+                <div class="stat-label">📈 Bénéfice</div>
+                <div class="stat-value" id="statProfit">0 GDS</div>
+            </div>
+            <div class="stat-box">
+                <i class="fas fa-percent stat-icon"></i>
+                <div class="stat-label">💵 Commission</div>
+                <div class="stat-value" id="statCommission">0 GDS</div>
+            </div>
+            <div class="stat-box">
+                <i class="fas fa-wallet stat-icon"></i>
+                <div class="stat-label">💰 Solde</div>
+                <div class="stat-value" id="statBalance">0 GDS</div>
+            </div>
+        </div>
+
+        <!-- Saisie des numéros -->
+        <div class="card">
+            <h3><i class="fas fa-edit"></i> 🎯 Saisie des numéros</h3>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label><i class="fas fa-hashtag"></i> Numéro</label>
+                    <input type="text" id="inputNumber" placeholder="Ex: 00, 000, 12345" maxlength="5">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-money-bill-wave"></i> Montant (GDS)</label>
+                    <input type="number" id="inputAmount" value="10" min="10" step="10">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-tag"></i> Type</label>
+                    <select id="inputType">
+                        <option value="simple">2 chiffres (00-99)</option>
+                        <option value="three">3 chiffres (000-999)</option>
+                        <option value="five">5 chiffres (00000-99999)</option>
+                    </select>
+                </div>
+                <button class="add-btn" onclick="addNumber()"><i class="fas fa-plus"></i> Ajouter</button>
+            </div>
+            
+            <div class="selected-numbers">
+                <h4><i class="fas fa-list"></i> Numéros sélectionnés :</h4>
+                <div id="itemsList" class="items-list"></div>
+                <div class="total-row">
+                    <strong>TOTAL :</strong>
+                    <span id="totalAmount" class="total-amount">0 GDS</span>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label><i class="fas fa-calendar-alt"></i> Tirage</label>
+                    <select id="drawingName">
+                        <option>New York Midday</option>
+                        <option>New York Night</option>
+                        <option>Florida Midday</option>
+                        <option>Florida Night</option>
+                        <option>GA Midday</option>
+                        <option>GA Evening</option>
+                        <option>GA Night</option>
+                        <option>TN Morning</option>
+                        <option>TN Evening</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-sticky-note"></i> Notes (optionnel)</label>
+                    <input type="text" id="ticketNotes" placeholder="Ex: Client Jean, etc.">
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="print-btn" onclick="printTicket()"><i class="fas fa-print"></i> IMPRIMER LE TICKET</button>
+                <button class="cancel-sale-btn" onclick="clearItems()"><i class="fas fa-trash"></i> Annuler la vente</button>
+            </div>
+        </div>
+
+        <!-- Déchargement (remise d'argent) -->
+        <div class="card">
+            <h3><i class="fas fa-hand-holding-usd"></i> 💵 Déchargement (remise d'argent)</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label><i class="fas fa-university"></i> Point de paiement</label>
+                    <select id="depositPointId"></select>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-money-bill-wave"></i> Montant (GDS)</label>
+                    <input type="number" id="depositAmount" placeholder="Montant à déposer">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-sticky-note"></i> Notes</label>
+                    <input type="text" id="depositNotes" placeholder="Motif">
+                </div>
+                <button class="deposit-btn" onclick="makeDeposit()"><i class="fas fa-arrow-down"></i> Décharger</button>
+            </div>
+            <div id="depositResult" class="deposit-result"></div>
+        </div>
+
+        <!-- Annulation de ticket -->
+        <div class="card">
+            <h3><i class="fas fa-ban"></i> 🗑️ Annuler un ticket</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label><i class="fas fa-ticket-alt"></i> Numéro du ticket</label>
+                    <input type="text" id="cancelTicketId" placeholder="Numéro du ticket à annuler">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-comment"></i> Motif</label>
+                    <input type="text" id="cancelReason" placeholder="Motif d'annulation">
+                </div>
+                <button class="cancel-ticket-btn" onclick="cancelTicket()"><i class="fas fa-trash-alt"></i> Annuler ce ticket</button>
+            </div>
+            <div id="cancelResult" class="cancel-result"></div>
+        </div>
+
+        <!-- Liste des tickets -->
+        <div class="card">
+            <h3><i class="fas fa-ticket-alt"></i> Mes tickets</h3>
+            <div class="ticket-tabs">
+                <button class="tab-btn active" onclick="showTicketTab('all')"><i class="fas fa-list"></i> Tous</button>
+                <button class="tab-btn" onclick="showTicketTab('winners')"><i class="fas fa-trophy"></i> Gagnants</button>
+                <button class="tab-btn" onclick="showTicketTab('cancelled')"><i class="fas fa-ban"></i> Annulés</button>
+            </div>
+            <div id="ticketsList" class="tickets-list"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

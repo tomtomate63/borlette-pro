@@ -1,0 +1,693 @@
+/* ========== STYLES DE BASE ========== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f0f2f5;
+}
+
+/* ========== PAGE DE CONNEXION ========== */
+.login-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    padding: 20px;
+}
+
+.login-box {
+    background: white;
+    padding: 30px 25px;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 380px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+
+.login-box h1 {
+    color: #1e3c72;
+    margin-bottom: 10px;
+    font-size: 24px;
+}
+
+.login-box p {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.login-box input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 16px;
+}
+
+#adminLoginBtn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+#adminLoginBtn:hover {
+    transform: translateY(-2px);
+}
+
+.error {
+    color: #dc3545;
+    margin-top: 10px;
+    display: none;
+}
+
+/* ========== LAYOUT ADMIN ========== */
+.admin-page {
+    display: flex;
+    min-height: 100vh;
+    background: #f0f2f5;
+}
+
+/* ========== SIDEBAR ========== */
+.sidebar {
+    width: 280px;
+    background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+    color: white;
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 1000;
+    transition: transform 0.3s ease;
+}
+
+.sidebar-header {
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 15px;
+}
+
+.sidebar-header h2 {
+    color: #ff6b6b;
+    margin-bottom: 5px;
+    font-size: 20px;
+}
+
+.sidebar-header p {
+    font-size: 11px;
+    opacity: 0.7;
+}
+
+.nav-menu {
+    padding: 0 12px 20px 12px;
+}
+
+.nav-btn {
+    width: 100%;
+    padding: 10px 12px;
+    margin: 4px 0;
+    background: rgba(255,255,255,0.05);
+    border: none;
+    color: white;
+    text-align: left;
+    font-size: 13px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s;
+}
+
+.nav-btn i {
+    width: 20px;
+    font-size: 14px;
+}
+
+.nav-btn:hover, .nav-btn.active {
+    background: #ff6b6b;
+}
+
+.logout-btn {
+    width: 100%;
+    padding: 10px;
+    margin-top: 20px;
+    background: #dc3545;
+    border: none;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.logout-btn:hover {
+    background: #c82333;
+}
+
+/* ========== MAIN CONTENT ========== */
+.main-content {
+    flex: 1;
+    margin-left: 280px;
+    padding: 20px;
+    background: #f0f2f5;
+    min-height: 100vh;
+    width: calc(100% - 280px);
+}
+
+/* Header */
+.header {
+    background: white;
+    padding: 15px 20px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.header h1 {
+    color: #1e3c72;
+    font-size: 20px;
+}
+
+.admin-info {
+    color: #666;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ========== CARTES ========== */
+.card {
+    background: white;
+    border-radius: 12px;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.card h3 {
+    color: #1e3c72;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #ff6b6b;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+}
+
+/* ========== STATISTIQUES ========== */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: white;
+    padding: 15px;
+    border-radius: 12px;
+    text-align: center;
+    transition: transform 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+}
+
+.stat-card .stat-icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+    opacity: 0.8;
+}
+
+.stat-card h3 {
+    color: white;
+    border: none;
+    margin-bottom: 8px;
+    font-size: 13px;
+    padding: 0;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+/* ========== TABLEAUX ========== */
+.table-responsive {
+    overflow-x: auto;
+    width: 100%;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 500px;
+}
+
+th, td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 13px;
+}
+
+th {
+    background: #f8f9fa;
+    color: #1e3c72;
+    font-weight: bold;
+}
+
+tr:hover {
+    background: #f8f9fa;
+}
+
+/* ========== FORMULAIRES ========== */
+.form-group {
+    margin-bottom: 12px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+    font-size: 13px;
+}
+
+.form-group input, 
+.form-group select, 
+.form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    background: white;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus, 
+.form-group select:focus, 
+.form-group textarea:focus {
+    outline: none;
+    border-color: #ff6b6b;
+}
+
+.form-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.form-row .form-group {
+    flex: 1;
+    min-width: 150px;
+    margin-bottom: 0;
+}
+
+/* ========== BOUTONS ========== */
+.btn-primary {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 3px 10px rgba(255,107,107,0.3);
+}
+
+/* ========== FILTRES ========== */
+.filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.filters input, 
+.filters select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 13px;
+    flex: 1;
+    min-width: 120px;
+    background: white;
+}
+
+/* ========== BADGES ========== */
+.winner-badge, .cancelled-badge, .pending-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.winner-badge { background: #28a745; color: white; }
+.cancelled-badge { background: #dc3545; color: white; }
+.pending-badge { background: #6c757d; color: white; }
+
+.agent-blocked { 
+    background: #dc3545; 
+    color: white; 
+    padding: 2px 8px; 
+    border-radius: 20px; 
+    font-size: 11px; 
+    display: inline-block;
+}
+.agent-active { 
+    background: #28a745; 
+    color: white; 
+    padding: 2px 8px; 
+    border-radius: 20px; 
+    font-size: 11px; 
+    display: inline-block;
+}
+
+.block-btn, .unblock-btn {
+    padding: 4px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    border: none;
+    color: white;
+    font-size: 12px;
+}
+.block-btn { background: #dc3545; }
+.unblock-btn { background: #28a745; }
+
+/* ========== TICKETS ========== */
+.ticket-item {
+    background: #f9f9f9;
+    padding: 12px;
+    margin: 8px 0;
+    border-radius: 8px;
+    border-left: 4px solid #ff6b6b;
+}
+.ticket-item.winner { 
+    border-left-color: #28a745; 
+    background: #e8f5e9; 
+}
+.ticket-item.cancelled { 
+    border-left-color: #dc3545; 
+    background: #fff5f5; 
+}
+
+.pay-btn {
+    background: #28a745;
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+/* ========== TRANSACTIONS ========== */
+.transaction-item {
+    background: #f9f9f9;
+    padding: 12px;
+    margin: 8px 0;
+    border-radius: 8px;
+    border-left: 4px solid #ff6b6b;
+}
+.transaction-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+.transaction-type { 
+    font-weight: bold; 
+    font-size: 12px; 
+}
+.transaction-date { 
+    font-size: 11px; 
+    color: #666; 
+}
+.transaction-details { 
+    font-size: 13px; 
+}
+
+/* ========== LIMITES ========== */
+.limit-card {
+    background: #f8f9fa;
+    padding: 15px;
+    margin: 15px 0;
+    border-radius: 10px;
+    border: 1px solid #e0e0e0;
+}
+.limit-card h4 { 
+    margin-bottom: 10px; 
+    color: #1e3c72; 
+}
+.limit-card textarea { 
+    width: 100%; 
+    padding: 8px; 
+    border: 1px solid #ddd; 
+    border-radius: 5px; 
+    margin: 10px 0;
+    font-family: monospace;
+    background: white;
+}
+.limit-card button {
+    background: #ff6b6b;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* ========== BOUTONS MENU MOBILE ========== */
+.menu-toggle {
+    display: none;
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 1001;
+    background: #1e3c72;
+    color: white;
+    border: none;
+    width: 45px;
+    height: 45px;
+    border-radius: 10px;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+}
+
+/* ========== RESPONSIVE MOBILE ========== */
+@media (max-width: 768px) {
+    /* Menu toggle - visible sur mobile */
+    .menu-toggle {
+        display: block;
+    }
+    
+    /* Sidebar masquée par défaut sur mobile */
+    .sidebar {
+        transform: translateX(-100%);
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 280px;
+        height: 100vh;
+        z-index: 1000;
+    }
+    
+    /* Sidebar ouverte */
+    .sidebar.open {
+        transform: translateX(0);
+    }
+    
+    /* Overlay visible quand sidebar ouverte */
+    .sidebar-overlay.active {
+        display: block;
+    }
+    
+    /* Main content prend toute la largeur */
+    .main-content {
+        margin-left: 0 !important;
+        width: 100%;
+        padding: 70px 15px 15px 15px;
+    }
+    
+    /* Header adapté */
+    .header {
+        flex-direction: column;
+        text-align: center;
+        padding: 12px;
+    }
+    
+    .header h1 {
+        font-size: 18px;
+    }
+    
+    /* Stats en colonne */
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .stat-card {
+        padding: 12px;
+    }
+    
+    .stat-value {
+        font-size: 20px;
+    }
+    
+    /* Formulaires en colonne */
+    .form-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .form-row .form-group {
+        width: 100%;
+        margin-bottom: 0;
+    }
+    
+    /* Boutons pleine largeur */
+    .btn-primary {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    /* Filtres en colonne */
+    .filters {
+        flex-direction: column;
+    }
+    
+    .filters input,
+    .filters select {
+        width: 100%;
+    }
+    
+    /* Tableaux défilants */
+    .table-responsive {
+        overflow-x: auto;
+    }
+    
+    th, td {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+    
+    /* Cartes */
+    .card {
+        padding: 12px;
+    }
+    
+    .card h3 {
+        font-size: 15px;
+    }
+    
+    /* Tickets */
+    .ticket-item {
+        padding: 10px;
+        font-size: 12px;
+    }
+    
+    /* Transactions */
+    .transaction-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+/* ========== TRÈS PETITS ÉCRANS (iPhone SE, etc.) ========== */
+@media (max-width: 480px) {
+    .stat-value {
+        font-size: 18px;
+    }
+    
+    th, td {
+        padding: 6px 8px;
+        font-size: 11px;
+    }
+    
+    .btn-primary {
+        font-size: 13px;
+        padding: 10px;
+    }
+    
+    .nav-btn {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+    
+    .nav-btn i {
+        font-size: 12px;
+    }
+}
+
+/* ========== TABLETTES ========== */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .sidebar {
+        width: 240px;
+    }
+    
+    .main-content {
+        margin-left: 240px;
+        width: calc(100% - 240px);
+    }
+}

@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Borlette Admin - Administration Professionnelle</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Bouton menu hamburger pour mobile -->
+    <button class="menu-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+    <div class="sidebar-overlay" onclick="closeSidebar()"></div>
+    
+    <div id="loginPage" class="login-page">
+        <div class="login-box">
+            <h1><i class="fas fa-crown"></i> Borlette Admin</h1>
+            <p>Système de gestion professionnel</p>
+            <input type="text" id="username" placeholder="Identifiant" autocomplete="username">
+            <input type="password" id="password" placeholder="Mot de passe" autocomplete="current-password">
+            <button id="adminLoginBtn" onclick="adminLogin()"><i class="fas fa-sign-in-alt"></i> SE CONNECTER</button>
+            <div id="loginError" class="error"></div>
+        </div>
+    </div>
+
+    <div id="adminPage" class="admin-page" style="display: none;">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-chart-line"></i> Borlette Pro</h2>
+                <p>Administration</p>
+            </div>
+            <div class="nav-menu">
+                <button class="nav-btn" onclick="showSection('dashboard', event)"><i class="fas fa-tachometer-alt"></i> <span>Tableau de bord</span></button>
+                <button class="nav-btn" onclick="showSection('enregistrement', event)"><i class="fas fa-clipboard-list"></i> <span>📋 ENREGISTREMENT</span></button>
+                <button class="nav-btn" onclick="showSection('utilisateurs', event)"><i class="fas fa-users"></i> <span>Utilisateurs</span></button>
+                <button class="nav-btn" onclick="showSection('pointsVente', event)"><i class="fas fa-store"></i> <span>Points de vente</span></button>
+                <button class="nav-btn" onclick="showSection('limitesBoules', event)"><i class="fas fa-ban"></i> <span>Limites de boules</span></button>
+                <button class="nav-btn" onclick="showSection('rapports', event)"><i class="fas fa-chart-bar"></i> <span>📊 RAPPORTS</span></button>
+                <button class="nav-btn" onclick="showSection('transactions', event)"><i class="fas fa-exchange-alt"></i> <span>Transactions</span></button>
+                <button class="nav-btn" onclick="showSection('tickets', event)"><i class="fas fa-ticket-alt"></i> <span>Tickets</span></button>
+                <button class="nav-btn" onclick="showSection('controlePaiement', event)"><i class="fas fa-money-bill-wave"></i> <span>Contrôle paiement</span></button>
+                <button class="nav-btn" onclick="showSection('commissions', event)"><i class="fas fa-percent"></i> <span>Commissions</span></button>
+                <button class="nav-btn" onclick="showSection('tirages', event)"><i class="fas fa-dice"></i> <span>Tirages</span></button>
+                <button class="logout-btn" onclick="adminLogout()"><i class="fas fa-sign-out-alt"></i> <span>Déconnexion</span></button>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1 id="sectionTitle">Tableau de bord</h1>
+                <div id="adminInfo" class="admin-info"></div>
+            </div>
+            
+            <!-- DASHBOARD -->
+            <div id="dashboardSection" class="section">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <i class="fas fa-chart-line stat-icon"></i>
+                        <h3>Ventes totales</h3>
+                        <div class="stat-value" id="totalSales">0 GDS</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-trophy stat-icon"></i>
+                        <h3>Gains payés</h3>
+                        <div class="stat-value" id="totalWins">0 GDS</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-hand-holding-usd stat-icon"></i>
+                        <h3>Commissions</h3>
+                        <div class="stat-value" id="totalCommission">0 GDS</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-chart-line stat-icon"></i>
+                        <h3>Bénéfice net</h3>
+                        <div class="stat-value" id="netProfit">0 GDS</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3><i class="fas fa-chart-pie"></i> Ventes par zone</h3>
+                    <div id="zoneStats" class="table-responsive"></div>
+                </div>
+                <div class="card">
+                    <h3><i class="fas fa-clock"></i> Dernières ventes</h3>
+                    <div id="recentSales"></div>
+                </div>
+            </div>
+            
+            <!-- ENREGISTREMENT -->
+            <div id="enregistrementSection" class="section" style="display: none;">
+                <div class="card">
+                    <h3><i class="fas fa-user-plus"></i> Enregistrer un nouveau vendeur</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nom d'utilisateur *</label>
+                            <input type="text" id="newUsername" placeholder="ex: vendeur01">
+                        </div>
+                        <div class="form-group">
+                            <label>Mot de passe</label>
+                            <input type="text" id="newPassword" placeholder="1234" value="1234">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Prénom *</label>
+                            <input type="text" id="newPrenom" placeholder="Prénom">
+                        </div>
+                        <div class="form-group">
+                            <label>Nom *</label>
+                            <input type="text" id="newNom" placeholder="Nom">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nom affiché</label>
+                            <input type="text" id="newAgentName" placeholder="Agent ...">
+                        </div>
+                        <div class="form-group">
+                            <label>Zone</label>
+                            <select id="newZone">
+                                <option value="tabarre">Tabarre</option>
+                                <option value="delmas">Delmas</option>
+                                <option value="petion-ville">Pétion-Ville</option>
+                                <option value="bois-moquette">Bois Moquette</option>
+                                <option value="dezermith">Dezermith</option>
+                                <option value="fermathe">Fermathe</option>
+                                <option value="clercine">Clercine</option>
+                                <option value="carrefour">Carrefour</option>
+                                <option value="gerald">Gerald</option>
+                                <option value="fort-dimanche">Fort-Dimanche</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Date de naissance</label>
+                            <input type="date" id="newDateNaissance">
+                        </div>
+                        <div class="form-group">
+                            <label>Carte d'identité</label>
+                            <input type="text" id="newCarteIdentite" placeholder="Numéro carte">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Matricule fiscale</label>
+                            <input type="text" id="newMatriculeFiscale" placeholder="NIF">
+                        </div>
+                        <div class="form-group">
+                            <label>Permis de conduire</label>
+                            <input type="text" id="newPermis" placeholder="Permis">
+                        </div>
+                    </div>
+                    <button class="btn-primary" onclick="createAgent()"><i class="fas fa-save"></i> Créer le vendeur</button>
+                    <div id="createAgentResult"></div>
+                </div>
+                
+                <div class="card">
+                    <h3><i class="fas fa-user-tie"></i> Enregistrer un superviseur</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nom d'utilisateur *</label>
+                            <input type="text" id="superUsername" placeholder="ex: super_delmas">
+                        </div>
+                        <div class="form-group">
+                            <label>Mot de passe</label>
+                            <input type="text" id="superPassword" value="super123">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Prénom *</label>
+                            <input type="text" id="superPrenom" placeholder="Prénom">
+                        </div>
+                        <div class="form-group">
+                            <label>Nom *</label>
+                            <input type="text" id="superNom" placeholder="Nom">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Zone</label>
+                            <select id="superZone">
+                                <option value="tabarre">Tabarre</option>
+                                <option value="delmas">Delmas</option>
+                                <option value="petion-ville">Pétion-Ville</option>
+                                <option value="bois-moquette">Bois Moquette</option>
+                                <option value="dezermith">Dezermith</option>
+                                <option value="fermathe">Fermathe</option>
+                                <option value="clercine">Clercine</option>
+                                <option value="carrefour">Carrefour</option>
+                                <option value="gerald">Gerald</option>
+                                <option value="fort-dimanche">Fort-Dimanche</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Carte d'identité</label>
+                            <input type="text" id="superCarteIdentite" placeholder="Numéro carte">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Matricule fiscale</label>
+                            <input type="text" id="superMatriculeFiscale" placeholder="NIF">
+                        </div>
+                        <div class="form-group">
+                            <label>Date de naissance</label>
+                            <input type="date" id="superDateNaissance">
+                        </div>
+                    </div>
+                    <button class="btn-primary" onclick="createSupervisor()"><i class="fas fa-save"></i> Créer le superviseur</button>
+                    <div id="createSupervisorResult"></div>
+                </div>
+                
+                <div class="card">
+                    <h3><i class="fas fa-university"></i> Ajouter un point de paiement / Banque</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nom du point</label>
+                            <input type="text" id="pointNom" placeholder="Ex: Delmas">
+                        </div>
+                        <div class="form-group">
+                            <label>Adresse</label>
+                            <input type="text" id="pointAdresse" placeholder="Adresse complète">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Département</label>
+                            <input type="text" id="pointDepartement" placeholder="Ex: Ouest">
+                        </div>
+                        <div class="form-group">
+                            <label>Zone</label>
+                            <input type="text" id="pointZone" placeholder="Zone">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Solde initial (GDS)</label>
+                        <input type="number" id="pointBalance" value="0">
+                    </div>
+                    <button class="btn-primary" onclick="createPaymentPoint()"><i class="fas fa-plus-circle"></i> Ajouter le point de paiement</button>
+                    <div id="createPointResult"></div>
+                </div>
+            </div>
+            
+            <!-- UTILISATEURS -->
+            <div id="utilisateursSection" class="section" style="display: none;">
+                <div class="card">
+                    <h3><i class="fas fa-store"></i> Vendeurs</h3>
+                    <div id="agentsList" class="table-responsive"></div>
+                </div>
+                <div class="card">
+                    <h3><i class="fas fa-user-tie"></i> Superviseurs</h3>
+                    <div id="supervisorsList" class="table-responsive"></div>
+                </div>
+                <div class="card">
+                    <h3><i class="fas fa-ban"></i> Bloquer / Débloquer un agent</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Identifiant de l'agent</label>
+                            <input type="text" id="blockAgentId" placeholder="ID ou nom d'utilisateur">
+                        </div>
+                        <div class="form-group">
+                            <label>Action</label>
+                            <select id="blockAction">
+                                <option value="block">Bloquer</option>
+                                <option value="unblock">Débloquer</option>
+                            </select>
+                        </div>
+                        <button class="btn-primary" onclick="toggleAgentBlockById()"><i class="fas fa-lock"></i> Appliquer</button>
+                    </div>
+                    <div id="blockResult"></div>
+                </div>
+            </div>
+            
+            <!-- POINTS DE VENTE -->
+            <div id="pointsVenteSection" class="section" style="display: none;">
+                <div class="card">
+                    <h3><i class="fas fa-store"></i> Points de vente actifs</h3>
+                    <div id="paymentPointsList" class="table-responsive"></div>
+                </div>
+                <div class="card">
+                    <h3><i class="fas fa-exchange-alt"></i> Déchargement (agent remet l'argent)</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Agent (ID)</label>
+                            <input type="number" id="depositAgentId" placeholder="ID agent">
+                        </div>
+                        <div class="form-group">
+                            <label>Point de paiement</label>
+                            <select id="depositPointId"></select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Montant (GDS)</label>
+                            <input type="number" id="depositAmount" placeholder="Montant">
+                        </div>
+                        <div class="form-group">
+                            <label>Notes</label>
+                            <input type="text" id="depositNotes" placeholder="Motif">
+                        </div>
+                    </div>
+                    <button class="btn-primary" onclick="makeDeposit()"><i class="fas fa-money-bill-wave"></i> Enregistrer le déchargement</button>
+                    <div id="depositResult"></div>
+                </div>
+                <div class="card">
+                    <h3><i class="fas fa-exchange-alt"></i> Transfert entre points de paiement</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>De</label>
+                            <select id="transferFrom"></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Vers</label>
+                            <select id="transferTo"></select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Montant (GDS)</label>
+                            <input type="number" id="transferAmount" placeholder="Montant">
+                        </div>
+                        <div class="form-group">
+                            <label>Notes</label>
+                            <input type="text" id="transferNotes" placeholder="Motif">
+                        </div>
+                    </div>
+                    <button class="btn-primary" onclick="makeTransfer()"><i class="fas fa-exchange-alt"></i> Effectuer le transfert</button>
+                    <div id="transferResult"></div>
+                </div>
+            </div>
+            
+            <!-- LIMITES DE BOULES -->
+            <div id="limitesBoulesSection" class="section" style="display: none;">
+                <div class="card">
+                    <h3><i class="fas fa-ban"></i> Limites de boules</h3>
+                    <div id="limitsSettings"></div>
+                </div>
+            </div>
+            
+            <!-- RAPPORTS -->
+            <div id="rapportsSection" class="section" style="display: none;">
+                <div class="card">
+                    <h3><i class="fas fa-chart-bar"></i> Ventes par point de paiement</h3>
+                    <div id="reportsByZone" class="table-responsive"></div>
+                </div>
+                <div class="card">
+                    <h3><i class="fas fa-chart-line"></i> Ventes par agent</h3>
+                    <div id="reportsByAgent" class="table-responsive"></div>
+                </div>
+                <div class="card">
+                    <h3><i class="fas fa-chart-pie"></i> Résumé par département</h3>
+                    <div id="reportsByDept"></div>
+                </div>
+            </div>
+            
+            <!-- TRANSACTIONS -->
+            <div id="transactionsSection" class="section" style="display: none;">
+                <div class="card">
+                    <h3><i class="fas fa-history"></i> Historique des transactions</h3>
+                    <div class="filters">
+                        <input type="text" id="filterTransaction" placeholder="Rechercher...">
+                        <select id="filterTransactionType">
+                            <option value="">Tous</option>
+                            <option value="vente">Ventes</option>
+                            <option value="dechargement">Déchargements</option>
+                            <option value="transfert">Transferts</option>
+                            <option value="gain">Gains</option>
+                            <option value="annulation">Annulations</option>
+                        </select>
+                    </div>
+                    <div id="transactionsList"></div>
+                </div>
+            </div>
+            
+            <!-- TICKETS -->
+            <div id="ticketsSection" class="section" style="display: none;">
+                <div class="card">
+                    <h3><i class="fas fa-ticket-alt"></i> Tickets gagnants</h3>
+                    <div id="winningTicketsList"></div>
+                </div>
+                <div class="card">
+                    <h3><i class="fas fa-clock"></i> Tickets en attente (non payés)</h3>
+                    <div id="pendingTicketsList"></div>
+                </div>
+                <div class="card">
+                    <h3><i class="fas fa-calendar-times"></i> Tickets caduques (>3 mois)</h3>
+                    <div id="expiredTicketsList"></div>
+                </div>
+                <div class="card">
+                    <h3><i class="fas fa-list"></i> Tous les tickets</h3>
+                    <div class="filters">
+                        <input type="text" id="searchTicket" placeholder="Rechercher ticket...">
+                        <select id="filterZone">
+                            <option value="">Toutes les zones</option>
+                        </select>
+                        <select id="filterStatus">
+                            <option value="">Tous</option>
+                            <option value="winner">Gagnants</option>
+                            <option value="cancelled">Annulés</option>
+                            <option value="active">Actifs</option>
+                        </select>
+                    </div>
+                    <div id="allTicketsList"></div>
+                </div>
+            </div>
+            
+            <!-- CONTRÔLE PAIEMENT -->
+            <div id="controlePaiementSection" class="section" style="display: none;">
+                <div class="card">
+                    <h3><i class="fas fa-money-check-alt"></i> Paiements par point de paiement</h3>
+                    <div id="paymentControl" class="table-responsive"></div>
+                </div>
+                <div class="card">
+                    <h3><i class="fas fa-hand-holding-usd"></i> Paiement des tickets gagnants</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Ticket ID</label>
+                            <input type="text" id="payTicketId" placeholder="Numéro du ticket">
+                        </div>
+                        <div class="form-group">
+                            <label>Point de paiement</label>
+                            <select id="payPaymentPoint"></select>
+                        </div>
+                    </div>
+                    <button class="btn-primary" onclick="markTicketAsPaid()"><i class="fas fa-check-circle"></i> Marquer comme payé</button>
+                    <div id="payResult"></div>
+                </div>
+            </div>
+            
+            <!-- COMMISSIONS -->
+            <div id="commissionsSection" class="section" style="display: none;">
+                <div class="card">
+                    <h3><i class="fas fa-percent"></i> Commissions des vendeurs</h3>
+                    <div id="agentCommissions" class="table-responsive"></div>
+                </div>
+                <div class="card">
+                    <h3><i class="fas fa-chart-line"></i> Commissions par point de paiement</h3>
+                    <div id="paymentPointCommissions" class="table-responsive"></div>
+                </div>
+            </div>
+            
+            <!-- TIRAGES -->
+            <div id="tiragesSection" class="section" style="display: none;">
+                <div class="card">
+                    <h3><i class="fas fa-dice"></i> Enregistrer un tirage</h3>
+                    <div class="form-group">
+                        <label>Tirage</label>
+                        <select id="drawingSelect">
+                            <option>New York Midday</option>
+                            <option>New York Night</option>
+                            <option>Florida Midday</option>
+                            <option>Florida Night</option>
+                            <option>GA Midday</option>
+                            <option>GA Evening</option>
+                            <option>GA Night</option>
+                            <option>TN Morning</option>
+                            <option>TN Evening</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Numéro gagnant (ex: 7007550)</label>
+                        <input type="text" id="drawingNumber" placeholder="Entrez le numéro du tirage">
+                    </div>
+                    <button class="btn-primary" onclick="saveDrawing()"><i class="fas fa-save"></i> Enregistrer le tirage</button>
+                    <div id="drawingMessage"></div>
+                </div>
+                <div class="card">
+                    <h3><i class="fas fa-history"></i> Historique des tirages</h3>
+                    <div id="drawingsHistory"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

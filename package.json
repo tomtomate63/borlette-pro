@@ -1,0 +1,15 @@
+{
+  "name": "borlette-backend",
+  "version": "1.0.0",
+  "description": "API Borlette",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.100.0"
+  }
+}
