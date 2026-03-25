@@ -163,26 +163,39 @@ async function loadUsers() {
                 <div class="table-responsive">
                     <table>
                         <thead>
-                            <tr><th>ID</th><th>Agent</th><th>Zone</th><th>Ventes</th><th>Gains</th><th>Commission</th><th>Solde</th><th>Statut</th><th>Action</th></tr>
+                            <tr>
+                                <th>ID</th>
+                                <th>Agent</th>
+                                <th>Zone</th>
+                                <th>Ventes</th>
+                                <th>Gains</th>
+                                <th>Commission (5%)</th>
+                                <th>Solde</th>
+                                <th>Statut</th>
+                                <th>Action</th>
+                            </tr>
                         </thead>
                         <tbody>
-                            ${agentsData.agents.map(a => `
-                                <tr>
-                                    <td>${a.id}</td>
-                                    <td><strong>${a.agentName || a.name}</strong><br><small>${a.username}</small></td>
-                                    <td>${a.zone}</td>
-                                    <td>${(a.totalSales || 0).toLocaleString()} GDS</td>
-                                    <td>${(a.totalWins || 0).toLocaleString()} GDS</td>
-                                    <td>${(a.commission || 0).toLocaleString()} GDS</td>
-                                    <td>${(a.balance || 0).toLocaleString()} GDS</td>
-                                    <td><span class="${a.isBlocked ? 'agent-blocked' : 'agent-active'}">${a.isBlocked ? 'Bloqué' : 'Actif'}</span></td>
-                                    <td>
-                                        <button class="${a.isBlocked ? 'unblock-btn' : 'block-btn'}" onclick="toggleAgentBlock(${a.id}, ${!a.isBlocked})">
-                                            ${a.isBlocked ? 'Débloquer' : 'Bloquer'}
-                                        </button>
-                                    </td>
-                                </tr>
-                            `).join('')}
+                            ${agentsData.agents.map(a => {
+                                const commission = (a.totalSales || 0) * 0.05;
+                                return `
+                                    <tr>
+                                        <td>${a.id}</td>
+                                        <td><strong>${a.agentName || a.name}</strong><br><small>${a.username}</small></td>
+                                        <td>${a.zone}</td>
+                                        <td>${(a.totalSales || 0).toLocaleString()} GDS</td>
+                                        <td>${(a.totalWins || 0).toLocaleString()} GDS</td>
+                                        <td class="commission-value">${commission.toLocaleString()} GDS</td>
+                                        <td>${(a.balance || 0).toLocaleString()} GDS</td>
+                                        <td><span class="${a.isBlocked ? 'agent-blocked' : 'agent-active'}">${a.isBlocked ? 'Bloqué' : 'Actif'}</span></td>
+                                        <td>
+                                            <button class="${a.isBlocked ? 'unblock-btn' : 'block-btn'}" onclick="toggleAgentBlock(${a.id}, ${!a.isBlocked})">
+                                                ${a.isBlocked ? 'Débloquer' : 'Bloquer'}
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
                         </tbody>
                     </table>
                 </div>
@@ -197,7 +210,12 @@ async function loadUsers() {
                 <div class="table-responsive">
                     <table>
                         <thead>
-                            <tr><th>ID</th><th>Superviseur</th><th>Zone</th><th>Statut</th></tr>
+                            <tr>
+                                <th>ID</th>
+                                <th>Superviseur</th>
+                                <th>Zone</th>
+                                <th>Statut</th>
+                            </tr>
                         </thead>
                         <tbody>
                             ${supervisorsData.supervisors.map(s => `
@@ -956,6 +974,21 @@ window.addEventListener('resize', function() {
         const sidebar = document.querySelector('.sidebar');
         if (sidebar) sidebar.classList.remove('open');
     }
+});
+// ========== CONNEXION AVEC TOUCHE ENTREE ==========
+document.addEventListener('DOMContentLoaded', function() {
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    
+    function handleEnter(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            login();
+        }
+    }
+    
+    if (usernameInput) usernameInput.addEventListener('keypress', handleEnter);
+    if (passwordInput) passwordInput.addEventListener('keypress', handleEnter);
 });
 // Enregistrement du Service Worker pour PWA
 if ('serviceWorker' in navigator) {
