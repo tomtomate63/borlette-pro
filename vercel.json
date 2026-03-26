@@ -20,6 +20,10 @@
       "dest": "server.js"
     },
     {
+      "src": "/icon/(.*)",
+      "dest": "server.js"
+    },
+    {
       "src": "/(.*)",
       "dest": "server.js"
     }
