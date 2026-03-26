@@ -387,11 +387,11 @@ async function loadTickets() {
             let tickets = data.tickets;
             
             if (currentTicketTab === 'winners') {
-                tickets = tickets.filter(t => t.isWinner);
+                tickets = tickets.filter(t => t.isWinner || t.is_winner);
             } else if (currentTicketTab === 'cancelled') {
-                tickets = tickets.filter(t => t.isCancelled);
+                tickets = tickets.filter(t => t.isCancelled || t.is_cancelled);
             } else {
-                tickets = tickets.filter(t => !t.isCancelled);
+                tickets = tickets.filter(t => !(t.isCancelled || t.is_cancelled));
             }
             
             displayTickets(tickets);
@@ -413,12 +413,16 @@ function displayTickets(tickets) {
         let statusClass = '';
         let statusBadge = '';
         
-        if (t.isCancelled) {
+        const isCancelled = t.isCancelled || t.is_cancelled;
+        const isWinner = t.isWinner || t.is_winner;
+        const winAmount = t.winAmount || t.win_amount || 0;
+        
+        if (isCancelled) {
             statusClass = 'cancelled';
             statusBadge = '<span class="cancelled-badge"><i class="fas fa-ban"></i> ANNULÉ</span>';
-        } else if (t.isWinner) {
+        } else if (isWinner) {
             statusClass = 'winner';
-            statusBadge = `<span class="winner-badge"><i class="fas fa-trophy"></i> GAGNANT ! ${t.winAmount.toLocaleString()} GDS</span>`;
+            statusBadge = `<span class="winner-badge"><i class="fas fa-trophy"></i> GAGNANT ! ${winAmount.toLocaleString()} GDS</span>`;
         } else {
             statusBadge = '<span class="pending-badge"><i class="fas fa-clock"></i> En attente</span>';
         }
@@ -428,6 +432,13 @@ function displayTickets(tickets) {
             let typeClass = item.ticketType === 'simple' ? 'type-simple' : (item.ticketType === 'three' ? 'type-three' : 'type-five');
             return `<div class="ticket-item-detail ${typeClass}"><span class="item-number-ticket">${item.number}</span> <span class="item-type-ticket">(${typeText})</span> : ${item.amount.toLocaleString()} GDS</div>`;
         }).join('') : `<div>Numéro: ${t.number} : ${t.amount} GDS</div>`;
+        
+        const totalAmount = t.totalAmount || t.total_amount || t.amount;
+        const drawingName = t.drawingName || t.drawing_name;
+        const ticketDate = t.date;
+        const notes = t.notes;
+        const cancelReason = t.cancelReason || t.cancel_reason;
+        const cancelledAt = t.cancelledAt || t.cancelled_at;
         
         return `
             <div class="ticket-item ${statusClass}">
@@ -439,11 +450,11 @@ function displayTickets(tickets) {
                     ${itemsList}
                 </div>
                 <div class="ticket-footer">
-                    <div><strong>Total: ${(t.totalAmount || t.amount).toLocaleString()} GDS</strong></div>
-                    <div><i class="fas fa-calendar-alt"></i> Tirage: ${t.drawingName}</div>
-                    <div><i class="fas fa-clock"></i> Date: ${new Date(t.date).toLocaleString()}</div>
-                    ${t.notes ? `<div><i class="fas fa-sticky-note"></i> Notes: ${t.notes}</div>` : ''}
-                    ${t.isCancelled ? `<div class="cancel-info"><i class="fas fa-info-circle"></i> Annulé le: ${new Date(t.cancelledAt).toLocaleString()}<br>Motif: ${t.cancelReason}</div>` : ''}
+                    <div><strong>Total: ${totalAmount.toLocaleString()} GDS</strong></div>
+                    <div><i class="fas fa-calendar-alt"></i> Tirage: ${drawingName}</div>
+                    <div><i class="fas fa-clock"></i> Date: ${new Date(ticketDate).toLocaleString()}</div>
+                    ${notes ? `<div><i class="fas fa-sticky-note"></i> Notes: ${notes}</div>` : ''}
+                    ${isCancelled ? `<div class="cancel-info"><i class="fas fa-info-circle"></i> Annulé le: ${new Date(cancelledAt).toLocaleString()}<br>Motif: ${cancelReason}</div>` : ''}
                 </div>
             </div>
         `;
@@ -478,6 +489,7 @@ document.getElementById('inputAmount')?.addEventListener('keypress', function(e)
         addNumber();
     }
 });
+
 // ========== CONNEXION AVEC TOUCHE ENTREE ==========
 document.addEventListener('DOMContentLoaded', function() {
     const usernameInput = document.getElementById('username');
