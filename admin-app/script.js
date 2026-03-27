@@ -34,24 +34,20 @@ async function adminLogin() {
 
 // ========== FONCTION SHOW SECTION ==========
 function showSection(section, event) {
-    // Cacher toutes les sections
     document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
     const targetSection = document.getElementById(`${section}Section`);
     if (targetSection) {
         targetSection.style.display = 'block';
     }
     
-    // Gestion de la classe active sur les boutons
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
     
-    // Si event existe, on l'utilise pour activer le bouton cliqué
     if (event && event.target) {
         const clickedBtn = event.target.closest('.nav-btn');
         if (clickedBtn) {
             clickedBtn.classList.add('active');
         }
     } else {
-        // Sinon, on active le bouton correspondant à la section
         const activeBtn = Array.from(document.querySelectorAll('.nav-btn')).find(btn => 
             btn.textContent.toLowerCase().includes(section.toLowerCase())
         );
@@ -73,7 +69,6 @@ function showSection(section, event) {
     };
     document.getElementById('sectionTitle').textContent = titles[section] || section;
     
-    // Charger les données selon la section
     if (section === 'dashboard') loadDashboard();
     if (section === 'utilisateurs') loadUsers();
     if (section === 'pointsVente') loadPaymentPoints();
@@ -85,7 +80,6 @@ function showSection(section, event) {
     if (section === 'commissions') loadCommissions();
     if (section === 'tirages') loadDrawingsHistory();
     
-    // Fermer la sidebar sur mobile après navigation
     closeSidebarAfterClick();
 }
 
@@ -118,15 +112,9 @@ async function loadDashboard() {
         const zoneData = await zoneRes.json();
         
         if (zoneData.success) {
-            let zoneHtml = '<div class="table-responsive"><table class="data-table"><thead><tr><th>Zone</th><th>Ventes</th><th>Gains</th><th>Commissions</th><th>Bénéfice</th></tr></thead><tbody>';
+            let zoneHtml = '<div class="table-responsive"><table class="data-table"><thead>汽<th>Zone</th><th>Ventes</th><th>Gains</th><th>Commissions</th><th>Bénéfice</th> </thead><tbody>';
             for (const [zone, data] of Object.entries(zoneData.report)) {
-                zoneHtml += `<tr>
-                    <td><strong>${zone}</strong></td>
-                    <td>${data.totalSales.toLocaleString()} GDS</td>
-                    <td>${data.totalWins.toLocaleString()} GDS</td>
-                    <td>${data.totalCommission.toLocaleString()} GDS</td>
-                    <td>${data.netProfit.toLocaleString()} GDS</td>
-                </tr>`;
+                zoneHtml += `<tr><td><strong>${zone}</strong></td><td>${data.totalSales.toLocaleString()} GDS</td><td>${data.totalWins.toLocaleString()} GDS</td><td>${data.totalCommission.toLocaleString()} GDS</td><td>${data.netProfit.toLocaleString()} GDS</td></tr>`;
             }
             zoneHtml += '</tbody></table></div>';
             document.getElementById('zoneStats').innerHTML = zoneHtml;
@@ -163,17 +151,7 @@ async function loadUsers() {
                 <div class="table-responsive">
                     <table>
                         <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Agent</th>
-                                <th>Zone</th>
-                                <th>Ventes</th>
-                                <th>Gains</th>
-                                <th>Commission (5%)</th>
-                                <th>Solde</th>
-                                <th>Statut</th>
-                                <th>Action</th>
-                            </tr>
+                            <tr><th>ID</th><th>Agent</th><th>Zone</th><th>Ventes</th><th>Gains</th><th>Commission (5%)</th><th>Solde</th><th>Statut</th><th>Action</th></tr>
                         </thead>
                         <tbody>
                             ${agentsData.agents.map(a => {
@@ -191,11 +169,7 @@ async function loadUsers() {
                                         <td class="commission-value">${commission.toLocaleString()} GDS</td>
                                         <td>${balance.toLocaleString()} GDS</td>
                                         <td><span class="${a.is_blocked ? 'agent-blocked' : 'agent-active'}">${a.is_blocked ? 'Bloqué' : 'Actif'}</span></td>
-                                        <td>
-                                            <button class="${a.is_blocked ? 'unblock-btn' : 'block-btn'}" onclick="toggleAgentBlock(${a.id}, ${!a.is_blocked})">
-                                                ${a.is_blocked ? 'Débloquer' : 'Bloquer'}
-                                            </button>
-                                        </td>
+                                        <td><button class="${a.is_blocked ? 'unblock-btn' : 'block-btn'}" onclick="toggleAgentBlock(${a.id}, ${!a.is_blocked})">${a.is_blocked ? 'Débloquer' : 'Bloquer'}</button></td>
                                     </tr>
                                 `;
                             }).join('')}
@@ -212,22 +186,10 @@ async function loadUsers() {
             document.getElementById('supervisorsList').innerHTML = `
                 <div class="table-responsive">
                     <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Superviseur</th>
-                                <th>Zone</th>
-                                <th>Statut</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th>ID</th><th>Superviseur</th><th>Zone</th><th>Statut</th></tr></thead>
                         <tbody>
                             ${supervisorsData.supervisors.map(s => `
-                                <tr>
-                                    <td>${s.id}</td>
-                                    <td><strong>${s.prenom} ${s.nom}</strong><br><small>${s.username}</small></td>
-                                    <td>${s.zone}</td>
-                                    <td><span class="${s.isActive ? 'agent-active' : 'agent-blocked'}">${s.isActive ? 'Actif' : 'Inactif'}</span></td>
-                                </tr>
+                                <tr><td>${s.id}</td><td><strong>${s.prenom} ${s.nom}</strong><br><small>${s.username}</small></td><td>${s.zone}</td><td><span class="${s.isActive ? 'agent-active' : 'agent-blocked'}">${s.isActive ? 'Actif' : 'Inactif'}</span></td></tr>
                             `).join('')}
                         </tbody>
                     </table>
@@ -245,11 +207,9 @@ async function loadPaymentPoints() {
         const data = await response.json();
         
         if (data.success) {
-            // Calculer les totaux des ventes par zone
             const agentsRes = await fetch(`${API_BASE_URL}/api/agents`);
             const agentsData = await agentsRes.json();
             
-            // Calculer les ventes par zone
             const salesByZone = {};
             if (agentsData.success) {
                 agentsData.agents.forEach(agent => {
@@ -263,9 +223,7 @@ async function loadPaymentPoints() {
             document.getElementById('paymentPointsList').innerHTML = `
                 <div class="table-responsive">
                     <table>
-                        <thead>
-                            <tr><th>ID</th><th>Nom</th><th>Adresse</th><th>Département</th><th>Zone</th><th>Solde (ventes - gains)</th><th>Statut</th><th>Action</th></tr>
-                        </thead>
+                        <thead><tr><th>ID</th><th>Nom</th><th>Adresse</th><th>Département</th><th>Zone</th><th>Solde</th><th>Statut</th><th>Action</th></tr></thead>
                         <tbody>
                             ${data.paymentPoints.map(p => {
                                 const zoneSales = salesByZone[p.zone] || 0;
@@ -279,11 +237,7 @@ async function loadPaymentPoints() {
                                         <td>${p.zone}</td>
                                         <td>${balance.toLocaleString()} GDS</td>
                                         <td><span class="${p.isActive ? 'agent-active' : 'agent-blocked'}">${p.isActive ? 'Actif' : 'Inactif'}</span></td>
-                                        <td>
-                                            <button class="${p.isActive ? 'block-btn' : 'unblock-btn'}" onclick="togglePaymentPoint(${p.id}, ${!p.isActive})">
-                                                ${p.isActive ? 'Désactiver' : 'Activer'}
-                                            </button>
-                                        </td>
+                                        <td><button class="${p.isActive ? 'block-btn' : 'unblock-btn'}" onclick="togglePaymentPoint(${p.id}, ${!p.isActive})">${p.isActive ? 'Désactiver' : 'Activer'}</button></td>
                                     </tr>
                                 `;
                             }).join('')}
@@ -292,7 +246,6 @@ async function loadPaymentPoints() {
                 </div>
             `;
             
-            // Remplir les select
             const activePoints = data.paymentPoints.filter(p => p.isActive);
             const selects = ['depositPointId', 'transferFrom', 'transferTo', 'payPaymentPoint'];
             selects.forEach(id => {
@@ -313,24 +266,18 @@ async function loadLimits() {
         if (data.success) {
             const limits = data.limits;
             document.getElementById('limitsSettings').innerHTML = `
-                <div class="limit-card">
-                    <h4>Lottery 2 chiffres (00-99)</h4>
-                    <label><input type="checkbox" id="simpleEnabled" ${limits.simple.enabled ? 'checked' : ''}> Activer les limites</label>
-                    <textarea id="simpleBlocked" placeholder="Numéros bloqués (séparés par virgule)" rows="3">${limits.simple.blockedNumbers.join(', ')}</textarea>
-                    <button onclick="updateLimit('simple', document.getElementById('simpleEnabled').checked, document.getElementById('simpleBlocked').value)">Sauvegarder</button>
-                </div>
-                <div class="limit-card">
-                    <h4>Lottery 3 chiffres (000-999)</h4>
-                    <label><input type="checkbox" id="threeEnabled" ${limits.three.enabled ? 'checked' : ''}> Activer les limites</label>
-                    <textarea id="threeBlocked" placeholder="Numéros bloqués (séparés par virgule)" rows="3">${limits.three.blockedNumbers.join(', ')}</textarea>
-                    <button onclick="updateLimit('three', document.getElementById('threeEnabled').checked, document.getElementById('threeBlocked').value)">Sauvegarder</button>
-                </div>
-                <div class="limit-card">
-                    <h4>Lottery 5 chiffres (00000-99999)</h4>
-                    <label><input type="checkbox" id="fiveEnabled" ${limits.five.enabled ? 'checked' : ''}> Activer les limites</label>
-                    <textarea id="fiveBlocked" placeholder="Numéros bloqués (séparés par virgule)" rows="3">${limits.five.blockedNumbers.join(', ')}</textarea>
-                    <button onclick="updateLimit('five', document.getElementById('fiveEnabled').checked, document.getElementById('fiveBlocked').value)">Sauvegarder</button>
-                </div>
+                <div class="limit-card"><h4>Lottery 2 chiffres (00-99)</h4>
+                <label><input type="checkbox" id="simpleEnabled" ${limits.simple.enabled ? 'checked' : ''}> Activer les limites</label>
+                <textarea id="simpleBlocked" rows="3">${limits.simple.blockedNumbers.join(', ')}</textarea>
+                <button onclick="updateLimit('simple', document.getElementById('simpleEnabled').checked, document.getElementById('simpleBlocked').value)">Sauvegarder</button></div>
+                <div class="limit-card"><h4>Lottery 3 chiffres (000-999)</h4>
+                <label><input type="checkbox" id="threeEnabled" ${limits.three.enabled ? 'checked' : ''}> Activer les limites</label>
+                <textarea id="threeBlocked" rows="3">${limits.three.blockedNumbers.join(', ')}</textarea>
+                <button onclick="updateLimit('three', document.getElementById('threeEnabled').checked, document.getElementById('threeBlocked').value)">Sauvegarder</button></div>
+                <div class="limit-card"><h4>Lottery 5 chiffres (00000-99999)</h4>
+                <label><input type="checkbox" id="fiveEnabled" ${limits.five.enabled ? 'checked' : ''}> Activer les limites</label>
+                <textarea id="fiveBlocked" rows="3">${limits.five.blockedNumbers.join(', ')}</textarea>
+                <button onclick="updateLimit('five', document.getElementById('fiveEnabled').checked, document.getElementById('fiveBlocked').value)">Sauvegarder</button></div>
             `;
         }
     } catch (error) {
@@ -340,7 +287,6 @@ async function loadLimits() {
 
 async function updateLimit(type, enabled, blockedStr) {
     const blockedNumbers = blockedStr.split(',').map(s => s.trim()).filter(s => s);
-    
     try {
         await fetch(`${API_BASE_URL}/api/update-number-limits`, {
             method: 'POST',
@@ -928,51 +874,6 @@ function closeSidebarAfterClick() {
     }
 }
 
-// ========== INITIALISATION DES FILTRES ==========
-document.addEventListener('DOMContentLoaded', function() {
-    const searchTicket = document.getElementById('searchTicket');
-    const filterZone = document.getElementById('filterZone');
-    const filterStatus = document.getElementById('filterStatus');
-    if (searchTicket) searchTicket.addEventListener('input', loadAllTickets);
-    if (filterZone) filterZone.addEventListener('change', loadAllTickets);
-    if (filterStatus) filterStatus.addEventListener('change', loadAllTickets);
-    
-    const filterTransaction = document.getElementById('filterTransaction');
-    const filterTransactionType = document.getElementById('filterTransactionType');
-    if (filterTransaction) filterTransaction.addEventListener('input', loadTransactions);
-    if (filterTransactionType) filterTransactionType.addEventListener('change', loadTransactions);
-    
-    const menuToggle = document.querySelector('.menu-toggle');
-    if (window.innerWidth <= 768 && menuToggle) menuToggle.style.display = 'block';
-});
-
-window.addEventListener('resize', function() {
-    const menuToggle = document.querySelector('.menu-toggle');
-    if (window.innerWidth <= 768) {
-        if (menuToggle) menuToggle.style.display = 'block';
-    } else {
-        if (menuToggle) menuToggle.style.display = 'none';
-        closeSidebar();
-        const sidebar = document.querySelector('.sidebar');
-        if (sidebar) sidebar.classList.remove('open');
-    }
-});
-
-// ========== CONNEXION AVEC TOUCHE ENTREE ==========
-document.addEventListener('DOMContentLoaded', function() {
-    const usernameInput = document.getElementById('username');
-    const passwordInput = document.getElementById('password');
-    
-    function handleEnter(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            adminLogin();
-        }
-    }
-    
-    if (usernameInput) usernameInput.addEventListener('keypress', handleEnter);
-    if (passwordInput) passwordInput.addEventListener('keypress', handleEnter);
-});
 // ========== MODE SOMBRE ==========
 function initDarkMode() {
     const darkMode = localStorage.getItem('darkMode');
@@ -996,11 +897,104 @@ function toggleDarkMode() {
     }
 }
 
-// Initialiser au chargement
+// ========== EXPORT PDF ==========
+async function exportToPDF(title, data, columns) {
+    if (!window.jspdf || !window.jspdf.jsPDF) {
+        alert('jsPDF non chargé. Veuillez rafraîchir la page.');
+        return;
+    }
+    const { jsPDF } = window.jspdf;
+    const { autoTable } = window.jspdf;
+    
+    const doc = new jsPDF();
+    
+    doc.setFontSize(18);
+    doc.setTextColor(30, 60, 114);
+    doc.text(title, 14, 20);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    const dateStr = new Date().toLocaleString('fr-FR');
+    doc.text(`Généré le : ${dateStr}`, 14, 28);
+    
+    autoTable(doc, {
+        head: [columns],
+        body: data,
+        startY: 35,
+        theme: 'striped',
+        headStyles: { fillColor: [30, 60, 114], textColor: 255 },
+        styles: { fontSize: 9, cellPadding: 3 },
+        margin: { left: 14, right: 14 }
+    });
+    
+    doc.save(`${title.replace(/[^a-z0-9]/gi, '_')}.pdf`);
+}
+
+// ========== INITIALISATION ==========
 document.addEventListener('DOMContentLoaded', function() {
+    // Filtres
+    const searchTicket = document.getElementById('searchTicket');
+    const filterZone = document.getElementById('filterZone');
+    const filterStatus = document.getElementById('filterStatus');
+    if (searchTicket) searchTicket.addEventListener('input', loadAllTickets);
+    if (filterZone) filterZone.addEventListener('change', loadAllTickets);
+    if (filterStatus) filterStatus.addEventListener('change', loadAllTickets);
+    
+    const filterTransaction = document.getElementById('filterTransaction');
+    const filterTransactionType = document.getElementById('filterTransactionType');
+    if (filterTransaction) filterTransaction.addEventListener('input', loadTransactions);
+    if (filterTransactionType) filterTransactionType.addEventListener('change', loadTransactions);
+    
+    const menuToggle = document.querySelector('.menu-toggle');
+    if (window.innerWidth <= 768 && menuToggle) menuToggle.style.display = 'block';
+    
+    // Bouton export PDF
+    const exportZoneBtn = document.getElementById('exportZoneStatsBtn');
+    if (exportZoneBtn) {
+        exportZoneBtn.addEventListener('click', async function() {
+            const zoneStatsDiv = document.getElementById('zoneStats');
+            const table = zoneStatsDiv.querySelector('table');
+            if (table) {
+                const rows = table.querySelectorAll('tr');
+                const headers = Array.from(rows[0].querySelectorAll('th')).map(th => th.innerText);
+                const data = Array.from(rows).slice(1).map(row => 
+                    Array.from(row.querySelectorAll('td')).map(cell => cell.innerText)
+                );
+                await exportToPDF('Ventes_par_zone', data, headers);
+            } else {
+                alert('Aucune donnée à exporter');
+            }
+        });
+    }
+    
+    // Mode sombre
     initDarkMode();
     const toggleBtn = document.getElementById('darkModeToggle');
     if (toggleBtn) toggleBtn.addEventListener('click', toggleDarkMode);
+    
+    // Touche Entrée
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    function handleEnter(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            adminLogin();
+        }
+    }
+    if (usernameInput) usernameInput.addEventListener('keypress', handleEnter);
+    if (passwordInput) passwordInput.addEventListener('keypress', handleEnter);
+});
+
+window.addEventListener('resize', function() {
+    const menuToggle = document.querySelector('.menu-toggle');
+    if (window.innerWidth <= 768) {
+        if (menuToggle) menuToggle.style.display = 'block';
+    } else {
+        if (menuToggle) menuToggle.style.display = 'none';
+        closeSidebar();
+        const sidebar = document.querySelector('.sidebar');
+        if (sidebar) sidebar.classList.remove('open');
+    }
 });
 
 // ========== SERVICE WORKER PWA ==========

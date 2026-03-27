@@ -787,3 +787,18 @@ body.dark-mode .login-box input {
     border-color: #2a2a3e;
     color: #e0e0e0;
 }
+/* ========== BOUTON EXPORT PDF ========== */
+.btn-export {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+.btn-export:hover {
+    background: #218838;
+}
