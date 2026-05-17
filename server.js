@@ -84,6 +84,20 @@ const server = http.createServer(async (req, res) => {
         serveStaticFile(filePath, res, contentType);
         return;
     }
+    // Route pour caissier-app - AJOUTÉ LE 17/05/2026
+        // Servir caissier-app
+    if (url.startsWith('/caissier-app/')) {
+        let filePath = path.join(__dirname, 'caissier-app', url.replace('/caissier-app/', ''));
+        if (filePath.endsWith('/') || !path.extname(filePath)) {
+            filePath = path.join(filePath, 'index.html');
+        }
+        const ext = path.extname(filePath);
+        let contentType = 'text/html';
+        if (ext === '.css') contentType = 'text/css';
+        if (ext === '.js') contentType = 'application/javascript';
+        serveStaticFile(filePath, res, contentType);
+        return;
+    }
     
     if (url.startsWith('/admin-app/')) {
         let filePath = path.join(__dirname, 'admin-app', url.replace('/admin-app/', ''));
