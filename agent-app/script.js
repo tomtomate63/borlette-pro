@@ -144,7 +144,6 @@ async function login() {
             
             loadAgentStats();
             loadTickets();
-            loadPaymentPoints();
             
             setInterval(() => {
                 if (currentUser) {
@@ -159,25 +158,6 @@ async function login() {
     } catch (error) {
         document.getElementById('errorMsg').textContent = 'Erreur de connexion au serveur';
         document.getElementById('errorMsg').style.display = 'block';
-    }
-}
-
-async function loadPaymentPoints() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/payment-points`);
-        const data = await response.json();
-        
-        if (data.success) {
-            const select = document.getElementById('depositPointId');
-            if (select) {
-                select.innerHTML = data.paymentPoints
-                    .filter(p => p.isActive)
-                    .map(p => `<option value="${p.id}">${p.nom} - ${p.adresse}</option>`)
-                    .join('');
-            }
-        }
-    } catch (error) {
-        console.error('Erreur chargement points:', error);
     }
 }
 
