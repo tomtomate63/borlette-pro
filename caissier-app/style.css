@@ -436,3 +436,84 @@ body {
         opacity: 0;
     }
 }
+/* ========== RAPPORT DU JOUR ========== */
+.report-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.report-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.report-item.total {
+    background: #1e3c72;
+    color: white;
+    font-weight: bold;
+}
+
+.report-item.total .report-value {
+    color: #ff6b6b;
+}
+
+.report-label {
+    font-weight: bold;
+}
+
+.report-value {
+    font-weight: bold;
+    color: #28a745;
+}
+
+.report-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.print-report-btn, .export-report-btn {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.print-report-btn {
+    background: #6c757d;
+    color: white;
+}
+
+.print-report-btn:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+}
+
+.export-report-btn {
+    background: #dc3545;
+    color: white;
+}
+
+.export-report-btn:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .report-buttons {
+        flex-direction: column;
+    }
+}

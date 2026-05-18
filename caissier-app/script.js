@@ -391,6 +391,143 @@ async function loadTransactions() {
     }
 }
 
+// ========== RAPPORT DU JOUR ==========
+async function loadDailyReport() {
+    if (!currentUser) return;
+    
+    const today = new Date().toISOString().split('T')[0];
+    
+    try {
+        // Récupérer les transactions du jour pour ce point
+        const response = await fetch(`${API_BASE_URL}/api/transactions`);
+        const data = await response.json();
+        
+        if (data.success && data.transactions) {
+            const myTransactions = data.transactions.filter(t => 
+                t.payment_point_id === currentUser.id && 
+                new Date(t.date).toISOString().split('T')[0] === today
+            );
+            
+            let sales = 0;
+            let payouts = 0;
+            let deposits = 0;
+            let transfers = 0;
+            
+            myTransactions.forEach(t => {
+                switch(t.type) {
+                    case 'vente':
+                        sales += t.amount;
+                        break;
+                    case 'paiement_gagnant':
+                        payouts += Math.abs(t.amount);
+                        break;
+                    case 'dechargement':
+                        deposits += t.amount;
+                        break;
+                    case 'transfert':
+                        if (t.from_point_id === currentUser.id) transfers += t.amount;
+                        break;
+                }
+            });
+            
+            document.getElementById('reportSales').innerHTML = sales.toLocaleString() + ' GDS';
+            document.getElementById('reportPayouts').innerHTML = payouts.toLocaleString() + ' GDS';
+            document.getElementById('reportDeposits').innerHTML = deposits.toLocaleString() + ' GDS';
+            document.getElementById('reportTransfers').innerHTML = transfers.toLocaleString() + ' GDS';
+            document.getElementById('reportBalance').innerHTML = currentPointBalance.toLocaleString() + ' GDS';
+        }
+    } catch (error) {
+        console.error('Erreur chargement rapport:', error);
+    }
+}
+
+function printReport() {
+    const printContent = `
+        <html>
+        <head>
+            <title>Rapport de caisse - ${currentUser.agentName || currentUser.name}</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 20px; }
+                h1 { color: #1e3c72; text-align: center; }
+                .info { text-align: center; margin-bottom: 20px; color: #666; }
+                table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                td { padding: 10px; border-bottom: 1px solid #ddd; }
+                .label { font-weight: bold; }
+                .total { font-weight: bold; font-size: 18px; color: #1e3c72; }
+                .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #666; }
+            </style>
+        </head>
+        <body>
+            <h1>🏦 RAPPORT DE CAISSE</h1>
+            <div class="info">
+                <strong>Caissier :</strong> ${currentUser.agentName || currentUser.name}<br>
+                <strong>Point :</strong> ${currentUser.zone}<br>
+                <strong>Date :</strong> ${new Date().toLocaleDateString('fr-FR')}<br>
+                <strong>Heure :</strong> ${new Date().toLocaleTimeString('fr-FR')}
+            </div>
+            <table>
+                <tr><td class="label">💰 Ventes du jour :</td><td>${document.getElementById('reportSales').innerHTML}</td></tr>
+                <tr><td class="label">🏆 Gains payés :</td><td>${document.getElementById('reportPayouts').innerHTML}</td></tr>
+                <tr><td class="label">📥 Déchargements :</td><td>${document.getElementById('reportDeposits').innerHTML}</td></tr>
+                <tr><td class="label">🔄 Transferts sortants :</td><td>${document.getElementById('reportTransfers').innerHTML}</td></tr>
+                <tr class="total"><td class="label">💵 Solde actuel :</td><td>${document.getElementById('reportBalance').innerHTML}</td></tr>
+            </table>
+            <div class="footer">
+                Document généré par Borlette Pro<br>
+                Merci de votre confiance !
+            </div>
+        </body>
+        </html>
+    `;
+    
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    printWindow.print();
+}
+
+function exportReportPDF() {
+    if (!window.jspdf || !window.jspdf.jsPDF) {
+        alert('Génération PDF non disponible. Veuillez rafraîchir la page.');
+        return;
+    }
+    
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    doc.setFontSize(18);
+    doc.setTextColor(30, 60, 114);
+    doc.text('RAPPORT DE CAISSE', 14, 20);
+    
+    doc.setFontSize(11);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Caissier : ${currentUser.agentName || currentUser.name}`, 14, 35);
+    doc.text(`Point : ${currentUser.zone}`, 14, 45);
+    doc.text(`Date : ${new Date().toLocaleDateString('fr-FR')}`, 14, 55);
+    doc.text(`Heure : ${new Date().toLocaleTimeString('fr-FR')}`, 14, 65);
+    
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text('💰 Ventes du jour :', 14, 85);
+    doc.text(document.getElementById('reportSales').innerHTML, 120, 85);
+    
+    doc.text('🏆 Gains payés :', 14, 100);
+    doc.text(document.getElementById('reportPayouts').innerHTML, 120, 100);
+    
+    doc.text('📥 Déchargements :', 14, 115);
+    doc.text(document.getElementById('reportDeposits').innerHTML, 120, 115);
+    
+    doc.text('🔄 Transferts sortants :', 14, 130);
+    doc.text(document.getElementById('reportTransfers').innerHTML, 120, 130);
+    
+    doc.setFontSize(14);
+    doc.setTextColor(30, 60, 114);
+    doc.text('💵 Solde actuel :', 14, 155);
+    doc.text(document.getElementById('reportBalance').innerHTML, 120, 155);
+    
+    doc.save(`rapport_caisse_${new Date().toISOString().split('T')[0]}.pdf`);
+}
+
 // ========== DÉCONNEXION ==========
 function logout() {
     currentUser = null;

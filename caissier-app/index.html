@@ -45,6 +45,37 @@
             </div>
         </div>
 
+                <!-- RAPPORT DU JOUR -->
+        <div class="card">
+            <h3><i class="fas fa-chart-line"></i> 📊 Rapport du jour</h3>
+            <div class="report-grid">
+                <div class="report-item">
+                    <span class="report-label">Ventes du jour :</span>
+                    <span class="report-value" id="reportSales">0 GDS</span>
+                </div>
+                <div class="report-item">
+                    <span class="report-label">Gains payés :</span>
+                    <span class="report-value" id="reportPayouts">0 GDS</span>
+                </div>
+                <div class="report-item">
+                    <span class="report-label">Déchargements :</span>
+                    <span class="report-value" id="reportDeposits">0 GDS</span>
+                </div>
+                <div class="report-item">
+                    <span class="report-label">Transferts sortants :</span>
+                    <span class="report-value" id="reportTransfers">0 GDS</span>
+                </div>
+                <div class="report-item total">
+                    <span class="report-label">Solde actuel :</span>
+                    <span class="report-value" id="reportBalance">0 GDS</span>
+                </div>
+            </div>
+            <div class="report-buttons">
+                <button class="print-report-btn" onclick="printReport()"><i class="fas fa-print"></i> Imprimer</button>
+                <button class="export-report-btn" onclick="exportReportPDF()"><i class="fas fa-file-pdf"></i> Exporter PDF</button>
+            </div>
+        </div>
+
         <!-- SECTION 1: VENTE DE TICKETS -->
         <div class="card">
             <h3><i class="fas fa-ticket-alt"></i> Vendre un ticket</h3>
