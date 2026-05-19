@@ -604,8 +604,6 @@
                 
                 <div class="card">
                     <h3><i class="fas fa-sync-alt"></i> 🔄 Synchronisation</h3>
-                    <p>Synchroniser la petite caisse avec le bénéfice net calculé automatiquement.</p>
-                    <button class="btn-primary" onclick="syncPettyCash()" style="margin-top: 10px;">
                         <i class="fas fa-sync-alt"></i> Synchroniser avec le bénéfice net
                     </button>
                     <div id="syncResult"></div>
@@ -692,6 +690,26 @@
                     </div>
                     <button class="btn-primary" onclick="topupPettyCash()"><i class="fas fa-plus-circle"></i> Recharger</button>
                     <div id="topupResult"></div>
+                </div>
+
+                                <!-- Formulaire Renflouement depuis bénéfice net -->
+                <div class="card">
+                    <h3><i class="fas fa-hand-holding-usd"></i> 💰 Renflouer la petite caisse</h3>
+                    <p>Renflouer la petite caisse depuis le bénéfice net de l'entreprise.</p>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Montant (GDS)</label>
+                            <input type="number" id="topupFromProfitAmount" placeholder="Montant à renflouer" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Notes (optionnel)</label>
+                            <input type="text" id="topupFromProfitNotes" placeholder="Motif du renflouement">
+                        </div>
+                    </div>
+                    <button class="btn-primary" onclick="topupFromProfit()">
+                        <i class="fas fa-money-bill-wave"></i> Renflouer depuis le bénéfice net
+                    </button>
+                    <div id="topupFromProfitResult"></div>
                 </div>
 
                 <div class="card">

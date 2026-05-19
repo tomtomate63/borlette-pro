@@ -1330,45 +1330,7 @@ const server = http.createServer(async (req, res) => {
         return;
     }
     
-    // ==================== PETITE CAISSE ====================
-    if (url === '/api/sync-petty-cash' && req.method === 'POST') {
-        let { data: tickets, error: ticketsError } = await supabase
-            .from('tickets')
-            .select('total_amount, win_amount, is_cancelled, is_winner');
-        
-        let { data: agents, error: agentsError } = await supabase
-            .from('agents')
-            .select('commission');
-        
-        const totalSales = (tickets || []).filter(t => !t.is_cancelled).reduce((sum, t) => sum + (t.total_amount || 0), 0);
-        const totalWins = (tickets || []).filter(t => t.is_winner && !t.is_cancelled).reduce((sum, t) => sum + (t.win_amount || 0), 0);
-        const totalCommission = (agents || []).reduce((sum, a) => sum + (a.commission || 0), 0);
-        const netProfit = totalSales - totalWins - totalCommission;
-        
-        await supabase
-            .from('petty_cash')
-            .insert([{ 
-                balance: netProfit, 
-                created_at: new Date().toISOString(),
-                sync_note: 'Synchronisation automatique avec le bénéfice net'
-            }]);
-        
-        await supabase
-            .from('petty_cash_transactions')
-            .insert([{
-                type: 'sync',
-                amount: 0,
-                category: 'synchronisation',
-                description: `Synchronisation: solde petite caisse aligné sur bénéfice net (${netProfit.toLocaleString()} GDS)`,
-                admin_name: 'Système',
-                balance_after: netProfit,
-                date: new Date().toISOString()
-            }]);
-        
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: true, netProfit: netProfit, message: 'Petite caisse synchronisée avec le bénéfice net' }));
-        return;
-    }
+ 
     
     if (url === '/api/petty-cash/balance' && req.method === 'GET') {
         let { data, error } = await supabase
@@ -1609,7 +1571,85 @@ const server = http.createServer(async (req, res) => {
         }));
         return;
     }
-    
+        // ==================== RENFLOUER LA PETITE CAISSE ====================
+    if (url === '/api/petty-cash/topup-from-profit' && req.method === 'POST') {
+        const body = await parseBody();
+        const { amount, notes, adminName } = body;
+        
+        if (!amount || amount <= 0) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: false, message: 'Montant invalide' }));
+            return;
+        }
+        
+        // Récupérer le bénéfice net actuel pour vérifier qu'il y a assez
+        let { data: tickets, error: ticketsError } = await supabase
+            .from('tickets')
+            .select('total_amount, win_amount, is_cancelled, is_winner');
+        
+        let { data: agents, error: agentsError } = await supabase
+            .from('agents')
+            .select('commission');
+        
+        const totalSales = (tickets || []).filter(t => !t.is_cancelled).reduce((sum, t) => sum + (t.total_amount || 0), 0);
+        const totalWins = (tickets || []).filter(t => t.is_winner && !t.is_cancelled).reduce((sum, t) => sum + (t.win_amount || 0), 0);
+        const totalCommission = (agents || []).reduce((sum, a) => sum + (a.commission || 0), 0);
+        const netProfit = totalSales - totalWins - totalCommission;
+        
+        if (amount > netProfit) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: false, message: `Montant supérieur au bénéfice net (${netProfit.toLocaleString()} GDS)` }));
+            return;
+        }
+        
+        // Récupérer le solde actuel de la petite caisse
+        let { data: currentData } = await supabase
+            .from('petty_cash')
+            .select('balance')
+            .order('created_at', { ascending: false })
+            .limit(1);
+        
+        let currentBalance = currentData && currentData.length > 0 ? currentData[0].balance : 0;
+        let newBalance = currentBalance + amount;
+        
+        // Mettre à jour le solde
+        await supabase
+            .from('petty_cash')
+            .insert([{ balance: newBalance, created_at: new Date().toISOString() }]);
+        
+        // Enregistrer la transaction de renflouement
+        await supabase
+            .from('petty_cash_transactions')
+            .insert([{
+                type: 'topup_from_profit',
+                amount: amount,
+                category: 'renflouement',
+                description: `Renflouement de la petite caisse depuis le bénéfice net`,
+                notes: notes || `Renflouement par ${adminName || 'Admin'}`,
+                admin_name: adminName || 'Admin',
+                balance_after: newBalance,
+                date: new Date().toISOString()
+            }]);
+        
+        // Ajouter une trace dans les transactions principales
+        await supabase
+            .from('transactions')
+            .insert([{
+                type: 'renflouement_caisse',
+                amount: -amount,
+                date: new Date().toISOString(),
+                description: `Renflouement de la petite caisse: ${amount.toLocaleString()} GDS`
+            }]);
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ 
+            success: true, 
+            newBalance: newBalance,
+            netProfitRemaining: netProfit - amount,
+            message: `✅ ${amount.toLocaleString()} GDS ajoutés à la petite caisse`
+        }));
+        return;
+    }
     // ==================== GESTION DES PINS POS (ADMIN) ====================
     
     // GET - Récupérer tous les PINs

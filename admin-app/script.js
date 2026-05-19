@@ -448,7 +448,6 @@ async function topupPettyCash() {
     }
 }
 
-async function syncPettyCash() {
     try {
         showToast('Synchronisation en cours...', 'info');
         
@@ -468,6 +467,40 @@ async function syncPettyCash() {
         }
     } catch (error) {
         console.error('Erreur:', error);
+        showToast('Erreur de connexion', 'error');
+    }
+async function topupFromProfit() {
+    const amount = parseInt(document.getElementById('topupFromProfitAmount').value);
+    const notes = document.getElementById('topupFromProfitNotes').value;
+    
+    if (!amount || amount <= 0) {
+        showToast('Entrez un montant valide', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/petty-cash/topup-from-profit`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                amount: amount,
+                notes: notes,
+                adminName: currentAdmin?.name || currentAdmin?.username || 'Admin'
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showToast(data.message, 'success');
+            document.getElementById('topupFromProfitAmount').value = '';
+            document.getElementById('topupFromProfitNotes').value = '';
+            loadPettyCash();
+            loadDashboard(); // Pour mettre à jour l'affichage du bénéfice net
+        } else {
+            showToast(data.message || '❌ Erreur', 'error');
+        }
+    } catch (error) {
         showToast('Erreur de connexion', 'error');
     }
 }
