@@ -540,7 +540,75 @@ function showTicketTab(tab) {
     }
     loadTickets();
 }
-
+// ========== ENREGISTRER CLIENT ET OBTENIR TICKET GRATUIT ==========
+async function registerClientAndGetFreeTicket() {
+    const prenom = document.getElementById('clientPrenom').value.trim();
+    const nom = document.getElementById('clientNom').value.trim();
+    const email = document.getElementById('clientEmail').value.trim();
+    const nif = document.getElementById('clientNif').value.trim();
+    
+    if (!prenom || !nom) {
+        alert('Veuillez entrer au moins le prénom et le nom du client');
+        return;
+    }
+    
+    if (!email) {
+        alert('Veuillez entrer l\'email du client');
+        return;
+    }
+    
+    if (currentUser.isBlocked) {
+        alert('Votre POS est bloqué. Vous ne pouvez pas effectuer cette action.');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/free-ticket`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                agentId: currentUser.id,
+                clientNom: nom,
+                clientPrenom: prenom,
+                clientEmail: email,
+                clientNif: nif
+            })
+        });
+        
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('freeTicketResult');
+        if (data.success) {
+            resultDiv.className = 'free-ticket-result success';
+            resultDiv.innerHTML = `
+                <i class="fas fa-gift"></i> 
+                <strong>Ticket gratuit offert !</strong><br>
+                Numéro gagnant: <span style="font-size: 20px; font-weight: bold;">${data.ticket.number}</span><br>
+                ID Ticket: ${data.ticket.id}
+            `;
+            
+            // Réinitialiser les champs
+            document.getElementById('clientPrenom').value = '';
+            document.getElementById('clientNom').value = '';
+            document.getElementById('clientEmail').value = '';
+            document.getElementById('clientNif').value = '';
+            
+            // Rafraîchir les stats
+            loadAgentStats();
+            loadTickets();
+        } else {
+            resultDiv.className = 'free-ticket-result error';
+            resultDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${data.message}`;
+        }
+        
+        setTimeout(() => {
+            resultDiv.style.display = 'none';
+            resultDiv.className = 'free-ticket-result';
+        }, 5000);
+    } catch (error) {
+        alert('Erreur de connexion');
+    }
+}
 function logout() {
     currentUser = null;
     currentItems = [];

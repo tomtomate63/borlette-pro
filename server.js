@@ -1845,7 +1845,157 @@ const server = http.createServer(async (req, res) => {
         }
         return;
     }
-    
+        // ==================== TICKET GRATUIT POUR CLIENT ====================
+    if (url === '/api/free-ticket' && req.method === 'POST') {
+        const body = await parseBody();
+        const { agentId, clientNom, clientPrenom, clientEmail, clientNif } = body;
+        
+        // Vérifier l'agent
+        let { data: agent, error: agentError } = await supabase
+            .from('agents')
+            .select('*')
+            .eq('id', agentId)
+            .single();
+        
+        if (!agent || agent.is_blocked) {
+            res.writeHead(403, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: false, message: 'Agent non trouvé ou bloqué' }));
+            return;
+        }
+        
+        // Générer un numéro aléatoire à 5 chiffres
+        const randomNumber = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
+        const ticketId = generateTicketId('FREE');
+        
+        const ticketData = {
+            id: ticketId,
+            agent_id: agentId,
+            items: [{ number: randomNumber, amount: 0, ticketType: 'five' }],
+            total_amount: 0,
+            drawing_name: 'New York Midday',
+            notes: `Ticket gratuit pour client: ${clientPrenom} ${clientNom}`,
+            date: new Date().toISOString(),
+            is_winner: false,
+            win_amount: 0,
+            win_items: [],
+            is_cancelled: false,
+            is_paid: false,
+            client_nom: clientNom,
+            client_prenom: clientPrenom,
+            client_email: clientEmail,
+            client_nif: clientNif,
+            is_free_ticket: true
+        };
+        
+        // Sauvegarder le ticket
+        let { data: ticket, error: ticketError } = await supabase
+            .from('tickets')
+            .insert([ticketData])
+            .select()
+            .single();
+        
+        if (ticketError) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: false, message: 'Erreur sauvegarde ticket' }));
+            return;
+        }
+        
+        // Enregistrer le client dans la table clients
+        await supabase
+            .from('clients')
+            .upsert({
+                nom: clientNom,
+                prenom: clientPrenom,
+                email: clientEmail,
+                nif: clientNif,
+                free_tickets_received: 1,
+                last_purchase: new Date().toISOString().split('T')[0]
+            }, { onConflict: 'email' });
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ 
+            success: true, 
+            ticket: { id: ticketId, number: randomNumber },
+            message: `Ticket gratuit offert ! Numéro: ${randomNumber}`
+        }));
+        return;
+    }
+        // ==================== TICKET GRATUIT POUR CLIENT ====================
+    if (url === '/api/free-ticket' && req.method === 'POST') {
+        const body = await parseBody();
+        const { agentId, clientNom, clientPrenom, clientEmail, clientNif } = body;
+        
+        // Vérifier l'agent
+        let { data: agent, error: agentError } = await supabase
+            .from('agents')
+            .select('*')
+            .eq('id', agentId)
+            .single();
+        
+        if (!agent || agent.is_blocked) {
+            res.writeHead(403, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: false, message: 'Agent non trouvé ou bloqué' }));
+            return;
+        }
+        
+        // Générer un numéro aléatoire à 5 chiffres
+        const randomNumber = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
+        const ticketId = generateTicketId('FREE');
+        
+        const ticketData = {
+            id: ticketId,
+            agent_id: agentId,
+            items: [{ number: randomNumber, amount: 0, ticketType: 'five' }],
+            total_amount: 0,
+            drawing_name: 'New York Midday',
+            notes: `Ticket gratuit pour client: ${clientPrenom} ${clientNom}`,
+            date: new Date().toISOString(),
+            is_winner: false,
+            win_amount: 0,
+            win_items: [],
+            is_cancelled: false,
+            is_paid: false,
+            client_nom: clientNom,
+            client_prenom: clientPrenom,
+            client_email: clientEmail,
+            client_nif: clientNif,
+            is_free_ticket: true
+        };
+        
+        // Sauvegarder le ticket
+        let { data: ticket, error: ticketError } = await supabase
+            .from('tickets')
+            .insert([ticketData])
+            .select()
+            .single();
+        
+        if (ticketError) {
+            console.error('Erreur ticket gratuit:', ticketError);
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: false, message: 'Erreur sauvegarde ticket' }));
+            return;
+        }
+        
+        // Enregistrer le client dans la table clients
+        await supabase
+            .from('clients')
+            .upsert({
+                nom: clientNom,
+                prenom: clientPrenom,
+                email: clientEmail,
+                nif: clientNif,
+                free_tickets_received: 1,
+                last_purchase: new Date().toISOString().split('T')[0]
+            }, { onConflict: 'email' });
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ 
+            success: true, 
+            ticket: { id: ticketId, number: randomNumber },
+            message: `Ticket gratuit offert ! Numéro: ${randomNumber}`
+        }));
+        return;
+    }
     // ==================== ROUTE PAR DÉFAUT (404) ====================
     res.writeHead(404, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ message: "Route non trouvée" }));
