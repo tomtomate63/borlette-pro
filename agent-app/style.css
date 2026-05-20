@@ -844,3 +844,25 @@ body.dark-mode .login-box input {
     color: #721c24;
     display: block;
 }
+.free-badge {
+    background: #ffc107;
+    color: #333;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.ticket-item.free {
+    border-left-color: #ffc107;
+    background: #fff8e1;
+}
+
+.free-number {
+    font-size: 16px;
+    font-weight: bold;
+    color: #ffc107;
+}

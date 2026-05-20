@@ -461,7 +461,8 @@ async function loadTickets() {
             } else if (currentTicketTab === 'cancelled') {
                 tickets = tickets.filter(t => t.isCancelled || t.is_cancelled);
             } else {
-                tickets = tickets.filter(t => !(t.isCancelled || t.is_cancelled));
+                // Afficher TOUS les tickets (normaux ET gratuits) - PAS de filtre
+                tickets = tickets.filter(t => true);
             }
             
             displayTickets(tickets);
@@ -485,6 +486,7 @@ function displayTickets(tickets) {
         
         const isCancelled = t.isCancelled || t.is_cancelled;
         const isWinner = t.isWinner || t.is_winner;
+        const isFreeTicket = t.is_free_ticket === true;
         const winAmount = t.winAmount || t.win_amount || 0;
         
         if (isCancelled) {
@@ -493,22 +495,38 @@ function displayTickets(tickets) {
         } else if (isWinner) {
             statusClass = 'winner';
             statusBadge = `<span class="winner-badge"><i class="fas fa-trophy"></i> GAGNANT ! ${winAmount.toLocaleString()} GDS</span>`;
+        } else if (isFreeTicket) {
+            statusClass = 'free';
+            statusBadge = '<span class="free-badge"><i class="fas fa-gift"></i> TICKET GRATUIT</span>';
         } else {
             statusBadge = '<span class="pending-badge"><i class="fas fa-clock"></i> En attente</span>';
         }
         
-        const itemsList = t.items ? t.items.map(item => {
-            let typeText = item.ticketType === 'simple' ? '2ch' : (item.ticketType === 'three' ? '3ch' : '5ch');
-            let typeClass = item.ticketType === 'simple' ? 'type-simple' : (item.ticketType === 'three' ? 'type-three' : 'type-five');
-            return `<div class="ticket-item-detail ${typeClass}"><span class="item-number-ticket">${item.number}</span> <span class="item-type-ticket">(${typeText})</span> : ${item.amount.toLocaleString()} GDS</div>`;
-        }).join('') : `<div>Numéro: ${t.number} : ${t.amount} GDS</div>`;
+        // Affichage spécial pour ticket gratuit
+        let itemsList = '';
+        if (isFreeTicket) {
+            const freeNumber = t.items && t.items[0] ? t.items[0].number : '???';
+            itemsList = `<div class="ticket-item-detail free-number"><span class="item-number-ticket">${freeNumber}</span> <span class="item-type-ticket">(Lotto 5 chiffres - OFFERT)</span></div>`;
+        } else {
+            itemsList = t.items ? t.items.map(item => {
+                let typeText = item.ticketType === 'simple' ? '2ch' : (item.ticketType === 'three' ? '3ch' : '5ch');
+                let typeClass = item.ticketType === 'simple' ? 'type-simple' : (item.ticketType === 'three' ? 'type-three' : 'type-five');
+                return `<div class="ticket-item-detail ${typeClass}"><span class="item-number-ticket">${item.number}</span> <span class="item-type-ticket">(${typeText})</span> : ${item.amount.toLocaleString()} GDS</div>`;
+            }).join('') : `<div>Numéro: ${t.number} : ${t.amount} GDS</div>`;
+        }
         
-        const totalAmount = t.totalAmount || t.total_amount || t.amount;
+        const totalAmount = t.totalAmount || t.total_amount || t.amount || 0;
         const drawingName = t.drawingName || t.drawing_name;
         const ticketDate = t.date;
         const notes = t.notes;
         const cancelReason = t.cancelReason || t.cancel_reason;
         const cancelledAt = t.cancelledAt || t.cancelled_at;
+        
+        // Infos client pour ticket gratuit
+        let clientInfo = '';
+        if (isFreeTicket && (t.client_nom || t.client_prenom)) {
+            clientInfo = `<div><i class="fas fa-user"></i> Client: ${t.client_prenom || ''} ${t.client_nom || ''}</div>`;
+        }
         
         return `
             <div class="ticket-item ${statusClass}">
@@ -523,6 +541,7 @@ function displayTickets(tickets) {
                     <div><strong>Total: ${totalAmount.toLocaleString()} GDS</strong></div>
                     <div><i class="fas fa-calendar-alt"></i> Tirage: ${drawingName}</div>
                     <div><i class="fas fa-clock"></i> Date: ${new Date(ticketDate).toLocaleString()}</div>
+                    ${clientInfo}
                     ${notes ? `<div><i class="fas fa-sticky-note"></i> Notes: ${notes}</div>` : ''}
                     ${isCancelled ? `<div class="cancel-info"><i class="fas fa-info-circle"></i> Annulé le: ${new Date(cancelledAt).toLocaleString()}<br>Motif: ${cancelReason}</div>` : ''}
                 </div>
