@@ -2,15 +2,20 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <!-- Empêcher la rotation sur mobile -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <!-- Orientation fixée -->
+    <meta name="screen-orientation" content="portrait">
+    <meta name="orientation" content="portrait-primary">
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Borlette Pro">
+    <meta name="apple-mobile-web-app-title" content="Borlette POS">
     <meta name="theme-color" content="#ff6b6b">
     <link rel="apple-touch-icon" href="/icon/icon-100.png">
-    <title>Borlette Agent - POS Professionnel</title>
+    <title>Borlette POS - Agent</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -27,72 +32,77 @@
     </div>
 
     <div id="appPage" class="app-page" style="display: none;">
+        <!-- En-tête fixe -->
         <div class="header">
-            <div class="header-left">
-                <h2><i class="fas fa-dice"></i> Borlette Express</h2>
+            <button class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+            <div class="header-title">
+                <h2>🎲 Borlette Express</h2>
                 <p class="header-date" id="currentDate"></p>
             </div>
-            <div class="header-right">
-                <button id="darkModeToggle" class="dark-mode-btn">
-                    <i class="fas fa-moon"></i>
-                </button>
-                <div id="agentInfo" class="agent-info"></div>
-                <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
+            <div class="header-actions">
+                <button id="darkModeToggle" class="dark-mode-btn"><i class="fas fa-moon"></i></button>
+                <div id="agentInfo" class="agent-info">
+                    <span class="agent-name" id="agentName"></span>
+                    <span class="agent-zone" id="agentZone"></span>
+                    <span class="agent-type" id="agentType"></span>
+                </div>
+                <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i></button>
             </div>
         </div>
 
+        <!-- Bloc alerte POS bloqué -->
         <div id="blockedAlert" class="alert" style="display: none;">
             <i class="fas fa-ban"></i> ⚠️ Votre POS est bloqué. Contactez l'administrateur.
         </div>
 
-        <!-- Statistiques Agent -->
+        <!-- Statistiques (version compacte) -->
         <div class="stats-bar">
-            <div class="stat-box">
-                <i class="fas fa-chart-line stat-icon"></i>
-                <div class="stat-label">💰 Ventes</div>
-                <div class="stat-value" id="statSales">0 GDS</div>
+            <div class="stat-item" onclick="showRapportPage()">
+                <i class="fas fa-chart-line"></i>
+                <span class="stat-label">Ventes</span>
+                <span class="stat-value" id="statSales">0</span>
             </div>
-            <div class="stat-box">
-                <i class="fas fa-trophy stat-icon"></i>
-                <div class="stat-label">🏆 Gains</div>
-                <div class="stat-value" id="statWins">0 GDS</div>
+            <div class="stat-item" onclick="showRapportPage()">
+                <i class="fas fa-trophy"></i>
+                <span class="stat-label">Gains</span>
+                <span class="stat-value" id="statWins">0</span>
             </div>
-            <div class="stat-box">
-                <i class="fas fa-chart-line stat-icon"></i>
-                <div class="stat-label">📈 Bénéfice</div>
-                <div class="stat-value" id="statProfit">0 GDS</div>
+            <div class="stat-item" onclick="showRapportPage()">
+                <i class="fas fa-chart-line"></i>
+                <span class="stat-label">Bénéfice</span>
+                <span class="stat-value" id="statProfit">0</span>
             </div>
-            <div class="stat-box">
-                <i class="fas fa-percent stat-icon"></i>
-                <div class="stat-label">💵 Commission</div>
-                <div class="stat-value" id="statCommission">0 GDS</div>
+            <div class="stat-item" onclick="showRapportPage()">
+                <i class="fas fa-percent"></i>
+                <span class="stat-label">Commission</span>
+                <span class="stat-value" id="statCommission">0</span>
             </div>
-            <div class="stat-box">
-                <i class="fas fa-wallet stat-icon"></i>
-                <div class="stat-label">💰 Solde</div>
-                <div class="stat-value" id="statBalance">0 GDS</div>
+            <div class="stat-item" onclick="showRapportPage()">
+                <i class="fas fa-wallet"></i>
+                <span class="stat-label">Solde</span>
+                <span class="stat-value" id="statBalance">0</span>
             </div>
         </div>
 
-        <!-- Saisie des numéros -->
-        <div class="card">
+        <!-- SECTION PRINCIPALE : VENTE DE TICKETS -->
+        <div class="card main-card">
             <h3><i class="fas fa-edit"></i> 🎯 Saisie des numéros</h3>
             
             <div class="form-row">
                 <div class="form-group">
                     <label><i class="fas fa-hashtag"></i> Numéro</label>
-                    <input type="text" id="inputNumber" placeholder="Ex: 00, 000, 12345" maxlength="5">
+                    <input type="text" id="inputNumber" placeholder="00, 000, 12345" maxlength="5">
                 </div>
                 <div class="form-group">
-                    <label><i class="fas fa-money-bill-wave"></i> Montant (GDS)</label>
+                    <label><i class="fas fa-money-bill-wave"></i> Montant</label>
                     <input type="number" id="inputAmount" value="10" min="10" step="10">
                 </div>
                 <div class="form-group">
                     <label><i class="fas fa-tag"></i> Type</label>
                     <select id="inputType">
-                        <option value="simple">2 chiffres (00-99)</option>
-                        <option value="three">3 chiffres (000-999)</option>
-                        <option value="five">5 chiffres (00000-99999)</option>
+                        <option value="simple">2 chiffres</option>
+                        <option value="three">3 chiffres</option>
+                        <option value="five">5 chiffres</option>
                     </select>
                 </div>
                 <button class="add-btn" onclick="addNumber()"><i class="fas fa-plus"></i> Ajouter</button>
@@ -123,70 +133,92 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label><i class="fas fa-sticky-note"></i> Notes (optionnel)</label>
-                    <input type="text" id="ticketNotes" placeholder="Ex: Client Jean, etc.">
+                    <label><i class="fas fa-sticky-note"></i> Notes</label>
+                    <input type="text" id="ticketNotes" placeholder="Ex: Client Jean">
                 </div>
             </div>
-                        <!-- Section Enregistrement Client et Ticket Gratuit -->
-            <div class="card" id="clientCard" style="margin-top: 15px;">
-                <h3><i class="fas fa-user-plus"></i> 🎁 Enregistrer un client - Ticket GRATUIT</h3>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Prénom</label>
-                        <input type="text" id="clientPrenom" placeholder="Prénom du client">
-                    </div>
-                    <div class="form-group">
-                        <label>Nom</label>
-                        <input type="text" id="clientNom" placeholder="Nom du client">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" id="clientEmail" placeholder="email@exemple.com">
-                    </div>
-                    <div class="form-group">
-                        <label>NIF (optionnel)</label>
-                        <input type="text" id="clientNif" placeholder="Numéro d'identification fiscale">
-                    </div>
-                </div>
-                <button class="free-ticket-btn" onclick="registerClientAndGetFreeTicket()">
-                    <i class="fas fa-gift"></i> Enregistrer et recevoir un ticket gratuit
-                </button>
-                <div id="freeTicketResult" class="free-ticket-result"></div>
-            </div>
+            
             <div class="action-buttons">
-                <button class="print-btn" onclick="printTicket()"><i class="fas fa-print"></i> IMPRIMER LE TICKET</button>
-                <button class="cancel-sale-btn" onclick="clearItems()"><i class="fas fa-trash"></i> Annuler la vente</button>
+                <button class="print-btn" onclick="printTicket()"><i class="fas fa-print"></i> IMPRIMER</button>
+                <button class="cancel-sale-btn" onclick="clearItems()"><i class="fas fa-trash"></i> Annuler</button>
             </div>
         </div>
 
-        <!-- Annulation de ticket -->
-        <div class="card">
-            <h3><i class="fas fa-ban"></i> 🗑️ Annuler un ticket</h3>
-            <div class="form-row">
-                <div class="form-group">
-                    <label><i class="fas fa-ticket-alt"></i> Numéro du ticket</label>
-                    <input type="text" id="cancelTicketId" placeholder="Numéro du ticket à annuler">
-                </div>
-                <div class="form-group">
-                    <label><i class="fas fa-comment"></i> Motif</label>
-                    <input type="text" id="cancelReason" placeholder="Motif d'annulation">
-                </div>
-                <button class="cancel-ticket-btn" onclick="cancelTicket()"><i class="fas fa-trash-alt"></i> Annuler ce ticket</button>
-            </div>
-            <div id="cancelResult" class="cancel-result"></div>
+        <!-- BOUTONS DE NAVIGATION BAS -->
+        <div class="nav-buttons">
+            <button class="nav-btn-bottom" onclick="showClientPage()">
+                <i class="fas fa-user-plus"></i> Client
+            </button>
+            <button class="nav-btn-bottom" onclick="showTicketsPage()">
+                <i class="fas fa-ticket-alt"></i> Tickets
+            </button>
+            <button class="nav-btn-bottom" onclick="showRapportPage()">
+                <i class="fas fa-chart-bar"></i> Rapport
+            </button>
         </div>
+    </div>
 
-        <!-- Liste des tickets -->
-        <div class="card">
+    <!-- PAGE CLIENT (popup) -->
+    <div id="clientPage" class="popup-page" style="display: none;">
+        <div class="popup-header">
+            <h3><i class="fas fa-user-plus"></i> Enregistrer un client</h3>
+            <button class="close-popup" onclick="closeClientPage()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="popup-content">
+            <div class="form-group">
+                <label>Prénom *</label>
+                <input type="text" id="clientPrenom" placeholder="Prénom du client">
+            </div>
+            <div class="form-group">
+                <label>Nom *</label>
+                <input type="text" id="clientNom" placeholder="Nom du client">
+            </div>
+            <div class="form-group">
+                <label>Email *</label>
+                <input type="email" id="clientEmail" placeholder="email@exemple.com">
+            </div>
+            <div class="form-group">
+                <label>NIF (optionnel)</label>
+                <input type="text" id="clientNif" placeholder="Numéro d'identification fiscale">
+            </div>
+            <button class="free-ticket-btn" onclick="registerClientAndGetFreeTicket()">
+                <i class="fas fa-gift"></i> Enregistrer et recevoir un ticket gratuit
+            </button>
+            <div id="freeTicketResult" class="free-ticket-result"></div>
+        </div>
+    </div>
+
+    <!-- PAGE TICKETS (popup) -->
+    <div id="ticketsPage" class="popup-page" style="display: none;">
+        <div class="popup-header">
             <h3><i class="fas fa-ticket-alt"></i> Mes tickets</h3>
+            <button class="close-popup" onclick="closeTicketsPage()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="popup-content">
             <div class="ticket-tabs">
                 <button class="tab-btn active" onclick="showTicketTab('all')"><i class="fas fa-list"></i> Tous</button>
                 <button class="tab-btn" onclick="showTicketTab('winners')"><i class="fas fa-trophy"></i> Gagnants</button>
                 <button class="tab-btn" onclick="showTicketTab('cancelled')"><i class="fas fa-ban"></i> Annulés</button>
             </div>
             <div id="ticketsList" class="tickets-list"></div>
+        </div>
+    </div>
+
+    <!-- PAGE RAPPORT (popup) -->
+    <div id="rapportPage" class="popup-page" style="display: none;">
+        <div class="popup-header">
+            <h3><i class="fas fa-chart-bar"></i> Rapport détaillé</h3>
+            <button class="close-popup" onclick="closeRapportPage()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="popup-content">
+            <div class="rapport-stats">
+                <div class="rapport-item"><span>💰 Ventes :</span><strong id="rapportSales">0 GDS</strong></div>
+                <div class="rapport-item"><span>🏆 Gains :</span><strong id="rapportWins">0 GDS</strong></div>
+                <div class="rapport-item"><span>📈 Bénéfice :</span><strong id="rapportProfit">0 GDS</strong></div>
+                <div class="rapport-item"><span>💵 Commission :</span><strong id="rapportCommission">0 GDS</strong></div>
+                <div class="rapport-item"><span>💰 Solde :</span><strong id="rapportBalance">0 GDS</strong></div>
+            </div>
+            <button class="print-report-btn" onclick="printRapport()"><i class="fas fa-print"></i> Imprimer le rapport</button>
         </div>
     </div>
 

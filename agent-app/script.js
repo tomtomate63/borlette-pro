@@ -671,7 +671,79 @@ function logout() {
     document.getElementById('username').value = '';
     document.getElementById('password').value = '';
 }
+// ========== GESTION DES PAGES/POPUPS ==========
+function toggleMenu() {
+    // Pour le menu mobile (optionnel)
+}
 
+function showClientPage() {
+    document.getElementById('clientPage').style.display = 'flex';
+}
+
+function closeClientPage() {
+    document.getElementById('clientPage').style.display = 'none';
+}
+
+function showTicketsPage() {
+    document.getElementById('ticketsPage').style.display = 'flex';
+    loadTickets(); // Rafraîchir la liste
+}
+
+function closeTicketsPage() {
+    document.getElementById('ticketsPage').style.display = 'none';
+}
+
+function showRapportPage() {
+    // Mettre à jour les stats dans le rapport
+    document.getElementById('rapportSales').innerText = document.getElementById('statSales').innerText;
+    document.getElementById('rapportWins').innerText = document.getElementById('statWins').innerText;
+    document.getElementById('rapportProfit').innerText = document.getElementById('statProfit').innerText;
+    document.getElementById('rapportCommission').innerText = document.getElementById('statCommission').innerText;
+    document.getElementById('rapportBalance').innerText = document.getElementById('statBalance').innerText;
+    document.getElementById('rapportPage').style.display = 'flex';
+}
+
+function closeRapportPage() {
+    document.getElementById('rapportPage').style.display = 'none';
+}
+
+function printRapport() {
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>Rapport - ${currentUser.agentName || currentUser.name}</title>
+            <style>
+                body { font-family: Arial; padding: 20px; }
+                h1 { color: #1e3c72; text-align: center; }
+                .info { text-align: center; margin-bottom: 20px; }
+                table { width: 100%; border-collapse: collapse; }
+                td { padding: 10px; border-bottom: 1px solid #ddd; }
+                .label { font-weight: bold; }
+                .total { font-weight: bold; font-size: 18px; color: #28a745; }
+            </style>
+        </head>
+        <body>
+            <h1>📊 RAPPORT DE VENTES</h1>
+            <div class="info">
+                Agent: ${currentUser.agentName || currentUser.name}<br>
+                Zone: ${currentUser.zone}<br>
+                Date: ${new Date().toLocaleDateString('fr-FR')}
+            </div>
+            <table>
+                <tr><td class="label">💰 Ventes totales :</td><td>${document.getElementById('statSales').innerText}</td></tr>
+                <tr><td class="label">🏆 Gains :</td><td>${document.getElementById('statWins').innerText}</td></tr>
+                <tr><td class="label">📈 Bénéfice net :</td><td>${document.getElementById('statProfit').innerText}</td></tr>
+                <tr><td class="label">💵 Commission :</td><td>${document.getElementById('statCommission').innerText}</td></tr>
+                <tr class="total"><td class="label">💰 Solde actuel :</td><td>${document.getElementById('statBalance').innerText}</td></tr>
+            </table>
+            <p style="text-align:center; margin-top:30px;">Document généré par Borlette Pro</p>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+}
 // ========== MODE SOMBRE ==========
 function initDarkMode() {
     const darkMode = localStorage.getItem('darkMode');
