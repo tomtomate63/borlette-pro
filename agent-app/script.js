@@ -583,9 +583,44 @@ async function registerClientAndGetFreeTicket() {
             resultDiv.innerHTML = `
                 <i class="fas fa-gift"></i> 
                 <strong>Ticket gratuit offert !</strong><br>
-                Numéro gagnant: <span style="font-size: 20px; font-weight: bold;">${data.ticket.number}</span><br>
+                Numéro: <span style="font-size: 20px; font-weight: bold;">${data.ticket.number}</span><br>
                 ID Ticket: ${data.ticket.id}
             `;
+            
+            // ========== IMPRIMER LE TICKET GRATUIT ==========
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Ticket Gratuit - ${data.ticket.id}</title>
+                    <style>
+                        body { font-family: monospace; padding: 20px; text-align: center; }
+                        .ticket { border: 2px dashed #28a745; padding: 20px; max-width: 300px; margin: 0 auto; }
+                        h1 { color: #28a745; }
+                        .free { color: #28a745; font-weight: bold; }
+                        .number { font-size: 24px; font-weight: bold; margin: 15px 0; }
+                        .footer { margin-top: 15px; font-size: 10px; color: #666; }
+                    </style>
+                </head>
+                <body>
+                    <div class="ticket">
+                        <h1>🎁 TICKET GRATUIT 🎁</h1>
+                        <div><strong>Ticket N°:</strong> ${data.ticket.id}</div>
+                        <div><strong>Offert à:</strong> ${prenom} ${nom}</div>
+                        <div><strong>Email:</strong> ${email}</div>
+                        <hr>
+                        <div class="free">🎲 NUMÉRO GAGNANT 🎲</div>
+                        <div class="number">${data.ticket.number}</div>
+                        <div>(Lotto 5 chiffres)</div>
+                        <hr>
+                        <div class="footer">Ce ticket est gratuit - Bonne chance !</div>
+                        <div class="footer">MERCI POUR VOTRE CONFIANCE !</div>
+                    </div>
+                    <button onclick="window.print();setTimeout(()=>window.close(),500);">🖨️ Imprimer</button>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
             
             // Réinitialiser les champs
             document.getElementById('clientPrenom').value = '';
