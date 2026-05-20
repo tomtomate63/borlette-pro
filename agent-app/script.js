@@ -1,100 +1,89 @@
 // URL de l'API
-const API_BASE_URL = window.location.origin;
+var API_BASE_URL = window.location.origin;
 
-let currentUser = null;
-let currentItems = [];
-let currentTicketTab = 'all';
-let agentStats = null;
+var currentUser = null;
+var currentItems = [];
+var currentTicketTab = 'all';
+var agentStats = null;
 
 // ========== GESTION DU CODE PIN ET DE L'APPAREIL ==========
-let deviceId = localStorage.getItem('deviceId');
+var deviceId = localStorage.getItem('deviceId');
 if (!deviceId) {
     deviceId = 'POS-' + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
     localStorage.setItem('deviceId', deviceId);
 }
 
-function verifyPOSPin() {
-    return new Promise(function(resolve, reject) {
-        var storedPin = localStorage.getItem('posPin');
-        
-        // Si pas de PIN stocké, demander à l'utilisateur
-        if (!storedPin) {
-            var enteredPin = prompt('🔒 ENTREZ LE CODE PIN DU POS :\n(Contactez l\'administrateur pour obtenir le code)');
-            if (!enteredPin) {
-                alert('Code PIN requis pour utiliser ce POS');
-                resolve(false);
-                return;
-            }
-            // Nettoyer le code PIN (enlever les tirets, espaces, etc.)
-            enteredPin = enteredPin.replace(/-/g, '').replace(/\s/g, '');
-            localStorage.setItem('posPin', enteredPin);
-            storedPin = enteredPin;
+function verifyPOSPin(callback) {
+    var storedPin = localStorage.getItem('posPin');
+    
+    if (!storedPin) {
+        var enteredPin = prompt('🔒 ENTREZ LE CODE PIN DU POS :\n(Contactez l\'administrateur pour obtenir le code)');
+        if (!enteredPin) {
+            alert('Code PIN requis pour utiliser ce POS');
+            if (callback) callback(false);
+            return;
         }
-        
-        var url = API_BASE_URL + '/api/verify-pos-pin';
-        var body = JSON.stringify({
-            pinCode: storedPin,
-            deviceId: deviceId,
-            posName: 'POS-' + deviceId.substring(0, 8)
-        });
-        
-        fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: body
-        })
-        .then(function(response) { return response.json(); })
-        .then(function(data) {
-            if (data.success) {
-                // Stocker le nom du POS pour référence
-                if (data.posName) {
-                    localStorage.setItem('posName', data.posName);
-                }
-                resolve(true);
-            } else {
-                // PIN invalide, effacer et réessayer
-                localStorage.removeItem('posPin');
-                alert('❌ CODE PIN INVALIDE. Veuillez réessayer.');
-                resolve(false);
-            }
-        })
-        .catch(function(error) {
-            console.error('Erreur vérification PIN:', error);
-            alert('❌ Erreur de vérification. Impossible de vérifier le code PIN.\nVérifiez votre connexion internet.');
-            resolve(false);
-        });
-    });
-}
-
-async function checkDeviceAuthorization() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/check-device`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ deviceId: deviceId })
-        });
-        
-        const data = await response.json();
-        
-        if (data.success && data.authorized === false) {
-            // L'appareil n'est plus autorisé
-            localStorage.removeItem('posPin');
-            alert('⚠️ Ce POS n\'est plus autorisé. Veuillez contacter l\'administrateur.');
-            return false;
-        }
-        
-        return true;
-    } catch (error) {
-        console.error('Erreur vérification appareil:', error);
-        return true; // En cas d'erreur, on laisse passer pour ne pas bloquer
+        enteredPin = enteredPin.replace(/-/g, '').replace(/\s/g, '');
+        localStorage.setItem('posPin', enteredPin);
+        storedPin = enteredPin;
     }
+    
+    var xhr = new XMLHttpRequest();
+    var url = API_BASE_URL + '/api/verify-pos-pin';
+    xhr.open('POST', url, true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                try {
+                    var data = JSON.parse(xhr.responseText);
+                    if (data.success) {
+                        if (data.posName) localStorage.setItem('posName', data.posName);
+                        if (callback) callback(true);
+                    } else {
+                        localStorage.removeItem('posPin');
+                        alert('❌ CODE PIN INVALIDE. Veuillez réessayer.');
+                        if (callback) callback(false);
+                    }
+                } catch(e) {
+                    alert('Erreur de traitement');
+                    if (callback) callback(false);
+                }
+            } else {
+                alert('❌ Erreur de vérification.');
+                if (callback) callback(false);
+            }
+        }
+    };
+    xhr.send(JSON.stringify({ pinCode: storedPin, deviceId: deviceId, posName: 'POS-' + deviceId.substring(0, 8) }));
 }
 
-// Afficher la date actuelle
+function checkDeviceAuthorization(callback) {
+    var xhr = new XMLHttpRequest();
+    var url = API_BASE_URL + '/api/check-device';
+    xhr.open('POST', url, true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                try {
+                    var data = JSON.parse(xhr.responseText);
+                    if (callback) callback(data.authorized !== false);
+                } catch(e) {
+                    if (callback) callback(true);
+                }
+            } else {
+                if (callback) callback(true);
+            }
+        }
+    };
+    xhr.send(JSON.stringify({ deviceId: deviceId }));
+}
+
 function updateDate() {
-    const dateElement = document.getElementById('currentDate');
+    var dateElement = document.getElementById('currentDate');
     if (dateElement) {
-        const now = new Date();
+        var now = new Date();
         dateElement.textContent = now.toLocaleDateString('fr-FR', { 
             weekday: 'long', 
             year: 'numeric', 
@@ -108,72 +97,64 @@ function login() {
     var username = document.getElementById('username').value;
     var password = document.getElementById('password').value;
     
-    // Vérifier le PIN d'abord
-    verifyPOSPin().then(function(isPinValid) {
+    verifyPOSPin(function(isPinValid) {
         if (!isPinValid) return;
         
-        // ⚠️ TEMPORAIREMENT DÉSACTIVÉ - Pour permettre l'enregistrement de l'appareil
-        // checkDeviceAuthorization().then(function(isDeviceAuthorized) {
-        //     if (!isDeviceAuthorized) return;
-        // });
-        
+        var xhr = new XMLHttpRequest();
         var url = API_BASE_URL + '/api/login';
-        var body = JSON.stringify({
-            username: username,
-            password: password,
-            deviceId: deviceId
-        });
-        
-        fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: body
-        })
-        .then(function(response) { return response.json(); })
-        .then(function(data) {
-            if (data.success && !data.user.isAdmin) {
-                currentUser = data.user;
-                document.getElementById('agentInfo').innerHTML = 
-                    '<div class="agent-name"><i class="fas fa-user-circle"></i> ' + (currentUser.agentName || currentUser.name) + '</div>' +
-                    '<div class="agent-zone"><i class="fas fa-map-marker-alt"></i> ' + currentUser.zone + '</div>' +
-                    '<div class="agent-type"><i class="fas fa-tag"></i> ' + (currentUser.type === 'supervisor' ? 'Superviseur' : 'Vendeur') + '</div>';
-                
-                if (currentUser.isBlocked) {
-                    document.getElementById('blockedAlert').style.display = 'block';
-                }
-                
-                document.getElementById('loginPage').style.display = 'none';
-                document.getElementById('appPage').style.display = 'block';
-                
-                updateDate();
-                setInterval(updateDate, 60000);
-                
-                loadAgentStats();
-                loadTickets();
-                
-                setInterval(function() {
-                    if (currentUser) {
+        xhr.open('POST', url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                try {
+                    var data = JSON.parse(xhr.responseText);
+                    if (data.success && !data.user.isAdmin) {
+                        currentUser = data.user;
+                        document.getElementById('agentInfo').innerHTML = 
+                            '<div class="agent-name"><i class="fas fa-user-circle"></i> ' + (currentUser.agentName || currentUser.name) + '</div>' +
+                            '<div class="agent-zone"><i class="fas fa-map-marker-alt"></i> ' + currentUser.zone + '</div>' +
+                            '<div class="agent-type"><i class="fas fa-tag"></i> ' + (currentUser.type === 'supervisor' ? 'Superviseur' : 'Vendeur') + '</div>';
+                        
+                        if (currentUser.isBlocked) {
+                            document.getElementById('blockedAlert').style.display = 'block';
+                        }
+                        
+                        document.getElementById('loginPage').style.display = 'none';
+                        document.getElementById('appPage').style.display = 'block';
+                        
+                        updateDate();
+                        setInterval(updateDate, 60000);
+                        
                         loadAgentStats();
                         loadTickets();
+                        
+                        setInterval(function() {
+                            if (currentUser) {
+                                loadAgentStats();
+                                loadTickets();
+                            }
+                        }, 30000);
+                    } else {
+                        document.getElementById('errorMsg').textContent = data.message || 'Identifiants incorrects';
+                        document.getElementById('errorMsg').style.display = 'block';
                     }
-                }, 30000);
+                } catch(e) {
+                    document.getElementById('errorMsg').textContent = 'Erreur de traitement';
+                    document.getElementById('errorMsg').style.display = 'block';
+                }
             } else {
-                document.getElementById('errorMsg').textContent = data.message || 'Identifiants incorrects';
+                document.getElementById('errorMsg').textContent = 'Erreur de connexion au serveur';
                 document.getElementById('errorMsg').style.display = 'block';
             }
-        })
-        .catch(function(error) {
-            console.error('Erreur:', error);
-            document.getElementById('errorMsg').textContent = 'Erreur de connexion au serveur';
-            document.getElementById('errorMsg').style.display = 'block';
-        });
+        };
+        xhr.send(JSON.stringify({ username: username, password: password, deviceId: deviceId }));
     });
 }
 
-async function makeDeposit() {
-    const paymentPointId = parseInt(document.getElementById('depositPointId').value);
-    const amount = parseInt(document.getElementById('depositAmount').value);
-    const notes = document.getElementById('depositNotes').value;
+function makeDeposit() {
+    var paymentPointId = parseInt(document.getElementById('depositPointId').value);
+    var amount = parseInt(document.getElementById('depositAmount').value);
+    var notes = document.getElementById('depositNotes').value;
     
     if (!paymentPointId || !amount || amount <= 0) {
         alert('Veuillez remplir tous les champs correctement');
@@ -181,56 +162,49 @@ async function makeDeposit() {
     }
     
     if (amount > (currentUser.balance || 0)) {
-        alert(`Solde insuffisant. Votre solde actuel est de ${(currentUser.balance || 0).toLocaleString()} GDS`);
+        alert('Solde insuffisant. Votre solde actuel est de ' + (currentUser.balance || 0).toLocaleString() + ' GDS');
         return;
     }
     
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/deposit`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                agentId: currentUser.id,
-                amount: amount,
-                paymentPointId: paymentPointId,
-                notes: notes
-            })
-        });
-        
-        const data = await response.json();
-        
-        const resultDiv = document.getElementById('depositResult');
-        if (data.success) {
-            resultDiv.className = 'deposit-result success';
-            resultDiv.innerHTML = `<i class="fas fa-check-circle"></i> ✅ Déchargement effectué ! Nouveau solde: ${data.newBalance.toLocaleString()} GDS`;
-            document.getElementById('depositAmount').value = '';
-            document.getElementById('depositNotes').value = '';
-            loadAgentStats();
-        } else {
-            resultDiv.className = 'deposit-result error';
-            resultDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ❌ ${data.message}`;
+    var xhr = new XMLHttpRequest();
+    var url = API_BASE_URL + '/api/deposit';
+    xhr.open('POST', url, true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            try {
+                var data = JSON.parse(xhr.responseText);
+                var resultDiv = document.getElementById('depositResult');
+                if (data.success) {
+                    resultDiv.className = 'deposit-result success';
+                    resultDiv.innerHTML = '<i class="fas fa-check-circle"></i> ✅ Déchargement effectué ! Nouveau solde: ' + data.newBalance.toLocaleString() + ' GDS';
+                    document.getElementById('depositAmount').value = '';
+                    document.getElementById('depositNotes').value = '';
+                    loadAgentStats();
+                } else {
+                    resultDiv.className = 'deposit-result error';
+                    resultDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> ❌ ' + data.message;
+                }
+                setTimeout(function() {
+                    resultDiv.style.display = 'none';
+                    resultDiv.className = 'deposit-result';
+                }, 3000);
+            } catch(e) {}
         }
-        
-        setTimeout(() => {
-            resultDiv.style.display = 'none';
-            resultDiv.className = 'deposit-result';
-        }, 3000);
-    } catch (error) {
-        alert('Erreur de connexion');
-    }
+    };
+    xhr.send(JSON.stringify({ agentId: currentUser.id, amount: amount, paymentPointId: paymentPointId, notes: notes }));
 }
 
 function addNumber() {
-    const number = document.getElementById('inputNumber').value.trim();
-    const amount = parseInt(document.getElementById('inputAmount').value);
-    const ticketType = document.getElementById('inputType').value;
+    var number = document.getElementById('inputNumber').value.trim();
+    var amount = parseInt(document.getElementById('inputAmount').value);
+    var ticketType = document.getElementById('inputType').value;
     
     if (!number) {
         alert('Entrez un numéro');
         return;
     }
     
-    // Vérifier la longueur selon le type
     if (ticketType === 'simple' && number.length !== 2) {
         alert('Pour 2 chiffres, entrez un numéro de 00 à 99');
         return;
@@ -249,38 +223,36 @@ function addNumber() {
         return;
     }
     
-    currentItems.push({
-        number: number,
-        amount: amount,
-        ticketType: ticketType
-    });
-    
+    currentItems.push({ number: number, amount: amount, ticketType: ticketType });
     updateItemsDisplay();
     
-    // Réinitialiser les champs
     document.getElementById('inputNumber').value = '';
     document.getElementById('inputAmount').value = '10';
     document.getElementById('inputNumber').focus();
 }
 
 function updateItemsDisplay() {
-    const container = document.getElementById('itemsList');
-    const total = currentItems.reduce((sum, item) => sum + item.amount, 0);
+    var container = document.getElementById('itemsList');
+    var total = 0;
+    for (var i = 0; i < currentItems.length; i++) {
+        total += currentItems[i].amount;
+    }
     
     if (currentItems.length === 0) {
         container.innerHTML = '<p class="empty-message"><i class="fas fa-inbox"></i> Aucun numéro sélectionné</p>';
     } else {
-        container.innerHTML = currentItems.map((item, index) => {
-            let typeText = item.ticketType === 'simple' ? '2 chiffres' : (item.ticketType === 'three' ? '3 chiffres' : '5 chiffres');
-            let typeClass = item.ticketType === 'simple' ? 'type-simple' : (item.ticketType === 'three' ? 'type-three' : 'type-five');
-            return `
-                <div class="item-row ${typeClass}">
-                    <span class="item-number"><strong>${item.number}</strong> <span class="item-type">${typeText}</span></span>
-                    <span class="item-amount">${item.amount.toLocaleString()} GDS</span>
-                    <button class="remove-item" onclick="removeItem(${index})"><i class="fas fa-times"></i></button>
-                </div>
-            `;
-        }).join('');
+        var html = '';
+        for (var i = 0; i < currentItems.length; i++) {
+            var item = currentItems[i];
+            var typeText = item.ticketType === 'simple' ? '2 chiffres' : (item.ticketType === 'three' ? '3 chiffres' : '5 chiffres');
+            var typeClass = item.ticketType === 'simple' ? 'type-simple' : (item.ticketType === 'three' ? 'type-three' : 'type-five');
+            html += '<div class="item-row ' + typeClass + '">' +
+                '<span class="item-number"><strong>' + item.number + '</strong> <span class="item-type">' + typeText + '</span></span>' +
+                '<span class="item-amount">' + item.amount.toLocaleString() + ' GDS</span>' +
+                '<button class="remove-item" onclick="removeItem(' + i + ')"><i class="fas fa-times"></i></button>' +
+            '</div>';
+        }
+        container.innerHTML = html;
     }
     
     document.getElementById('totalAmount').textContent = total.toLocaleString() + ' GDS';
@@ -298,7 +270,7 @@ function clearItems() {
     }
 }
 
-async function printTicket() {
+function printTicket() {
     if (currentItems.length === 0) {
         alert('Ajoutez au moins un numéro');
         return;
@@ -309,201 +281,158 @@ async function printTicket() {
         return;
     }
     
-    const drawingName = document.getElementById('drawingName').value;
-    const notes = document.getElementById('ticketNotes').value;
-    const total = currentItems.reduce((sum, item) => sum + item.amount, 0);
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/sell-multi-ticket`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                agentId: currentUser.id,
-                items: currentItems,
-                drawingName: drawingName,
-                notes: notes
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            const ticket = data.ticket;
-            
-            // Afficher le ticket pour impression
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write(`
-                <html>
-                <head>
-                    <title>Ticket Borlette - ${ticket.id}</title>
-                    <style>
-                        body { font-family: monospace; padding: 20px; text-align: center; }
-                        .ticket { border: 2px dashed #333; padding: 20px; max-width: 300px; margin: 0 auto; }
-                        h1 { color: #3B0458; font-size: 18px; margin: 0; }
-                        .date { font-size: 12px; color: #666; margin: 5px 0; }
-                        hr { border: 1px dashed #333; }
-                        .items { text-align: left; margin: 15px 0; }
-                        .item { display: flex; justify-content: space-between; margin: 5px 0; }
-                        .total { font-weight: bold; font-size: 16px; margin-top: 10px; text-align: right; }
-                        .footer { margin-top: 15px; font-size: 10px; color: #666; }
-                        button { margin-top: 20px; padding: 10px 20px; cursor: pointer; }
-                    </style>
-                </head>
-                <body>
-                    <div class="ticket">
-                        <h1>🎲 BORLETTE EXPRESS 🎲</h1>
-                        <div class="date">${new Date(ticket.date).toLocaleString()}</div>
-                        <div><strong>Ticket N°: ${ticket.id}</strong></div>
-                        <div>Agent: ${currentUser.agentName || currentUser.name}</div>
-                        <div>Tirage: ${ticket.drawingName}</div>
-                        <hr>
-                        <div class="items">
-                            ${ticket.items.map(item => `
-                                <div class="item">
-                                    <span>${item.number} (${item.ticketType === 'simple' ? '2ch' : (item.ticketType === 'three' ? '3ch' : '5ch')})</span>
-                                    <span>${item.amount} GDS</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                        <hr>
-                        <div class="total">TOTAL: ${total} GDS</div>
-                        ${notes ? `<div class="footer">Notes: ${notes}</div>` : ''}
-                        <div class="footer">MERCI POUR VOTRE CONFIANCE !</div>
-                    </div>
-                    <button onclick="window.print();setTimeout(()=>window.close(),500);">🖨️ Imprimer</button>
-                </body>
-                </html>
-            `);
-            printWindow.document.close();
-            
-            alert(`✅ Vente enregistrée ! Ticket N°: ${ticket.id}\nTotal: ${total} GDS`);
-            
-            // Réinitialiser
-            currentItems = [];
-            updateItemsDisplay();
-            document.getElementById('ticketNotes').value = '';
-            loadAgentStats();
-            loadTickets();
-        } else {
-            alert('❌ ' + data.message);
-        }
-    } catch (error) {
-        alert('Erreur de connexion');
+    var drawingName = document.getElementById('drawingName').value;
+    var notes = document.getElementById('ticketNotes').value;
+    var total = 0;
+    for (var i = 0; i < currentItems.length; i++) {
+        total += currentItems[i].amount;
     }
+    
+    var xhr = new XMLHttpRequest();
+    var url = API_BASE_URL + '/api/sell-multi-ticket';
+    xhr.open('POST', url, true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            try {
+                var data = JSON.parse(xhr.responseText);
+                if (data.success) {
+                    var ticket = data.ticket;
+                    alert('✅ Vente enregistrée ! Ticket N°: ' + ticket.id + '\nTotal: ' + total + ' GDS');
+                    currentItems = [];
+                    updateItemsDisplay();
+                    document.getElementById('ticketNotes').value = '';
+                    loadAgentStats();
+                    loadTickets();
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            } catch(e) {
+                alert('Erreur lors de l\'enregistrement');
+            }
+        }
+    };
+    xhr.send(JSON.stringify({ agentId: currentUser.id, items: currentItems, drawingName: drawingName, notes: notes }));
 }
 
-async function cancelTicket() {
-    const ticketId = document.getElementById('cancelTicketId').value.trim();
-    const reason = document.getElementById('cancelReason').value.trim() || 'Annulation client';
+function cancelTicket() {
+    var ticketId = document.getElementById('cancelTicketId').value.trim();
+    var reason = document.getElementById('cancelReason').value.trim() || 'Annulation client';
     
     if (!ticketId) {
         alert('Entrez le numéro du ticket à annuler');
         return;
     }
     
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/cancel-ticket`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                ticketId: ticketId,
-                agentId: currentUser.id,
-                reason: reason
-            })
-        });
-        
-        const data = await response.json();
-        
-        const resultDiv = document.getElementById('cancelResult');
-        if (data.success) {
-            resultDiv.className = 'cancel-result success';
-            resultDiv.innerHTML = `<i class="fas fa-check-circle"></i> ✅ ${data.message}`;
-            document.getElementById('cancelTicketId').value = '';
-            document.getElementById('cancelReason').value = '';
-            loadAgentStats();
-            loadTickets();
-        } else {
-            resultDiv.className = 'cancel-result error';
-            resultDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ❌ ${data.message}`;
+    var xhr = new XMLHttpRequest();
+    var url = API_BASE_URL + '/api/cancel-ticket';
+    xhr.open('PUT', url, true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            try {
+                var data = JSON.parse(xhr.responseText);
+                var resultDiv = document.getElementById('cancelResult');
+                if (data.success) {
+                    resultDiv.className = 'cancel-result success';
+                    resultDiv.innerHTML = '<i class="fas fa-check-circle"></i> ✅ ' + data.message;
+                    document.getElementById('cancelTicketId').value = '';
+                    document.getElementById('cancelReason').value = '';
+                    loadAgentStats();
+                    loadTickets();
+                } else {
+                    resultDiv.className = 'cancel-result error';
+                    resultDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> ❌ ' + data.message;
+                }
+                setTimeout(function() {
+                    resultDiv.style.display = 'none';
+                    resultDiv.className = 'cancel-result';
+                }, 3000);
+            } catch(e) {}
         }
-        
-        setTimeout(() => {
-            resultDiv.style.display = 'none';
-            resultDiv.className = 'cancel-result';
-        }, 3000);
-    } catch (error) {
-        alert('Erreur de connexion');
-    }
+    };
+    xhr.send(JSON.stringify({ ticketId: ticketId, agentId: currentUser.id, reason: reason }));
 }
 
-async function loadAgentStats() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/agent-stats?agentId=${currentUser.id}`);
-        const data = await response.json();
-        
-        if (data.success) {
-            agentStats = data.stats;
-            document.getElementById('statSales').textContent = agentStats.totalSales.toLocaleString() + ' GDS';
-            document.getElementById('statWins').textContent = agentStats.totalWins.toLocaleString() + ' GDS';
-            document.getElementById('statProfit').textContent = agentStats.netProfit.toLocaleString() + ' GDS';
-            document.getElementById('statCommission').textContent = agentStats.commission.toLocaleString() + ' GDS';
-            document.getElementById('statBalance').textContent = (agentStats.balance || 0).toLocaleString() + ' GDS';
-            
-            // Mettre à jour le solde local
-            if (currentUser) currentUser.balance = agentStats.balance;
+function loadAgentStats() {
+    if (!currentUser) return;
+    
+    var xhr = new XMLHttpRequest();
+    var url = API_BASE_URL + '/api/agent-stats?agentId=' + currentUser.id;
+    xhr.open('GET', url, true);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            try {
+                var data = JSON.parse(xhr.responseText);
+                if (data.success) {
+                    agentStats = data.stats;
+                    document.getElementById('statSales').textContent = agentStats.totalSales.toLocaleString() + ' GDS';
+                    document.getElementById('statWins').textContent = agentStats.totalWins.toLocaleString() + ' GDS';
+                    document.getElementById('statProfit').textContent = agentStats.netProfit.toLocaleString() + ' GDS';
+                    document.getElementById('statCommission').textContent = agentStats.commission.toLocaleString() + ' GDS';
+                    document.getElementById('statBalance').textContent = (agentStats.balance || 0).toLocaleString() + ' GDS';
+                    if (currentUser) currentUser.balance = agentStats.balance;
+                }
+            } catch(e) {}
         }
-    } catch (error) {
-        console.error('Erreur stats:', error);
-    }
+    };
+    xhr.send();
 }
 
-async function loadTickets() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/agent-tickets?agentId=${currentUser.id}`);
-        const data = await response.json();
-        
-        if (data.success) {
-            let tickets = data.tickets;
-            
-            if (currentTicketTab === 'winners') {
-                tickets = tickets.filter(t => t.isWinner || t.is_winner);
-            } else if (currentTicketTab === 'cancelled') {
-                tickets = tickets.filter(t => t.isCancelled || t.is_cancelled);
-            } else {
-                // Afficher TOUS les tickets (normaux ET gratuits) - PAS de filtre
-                tickets = tickets.filter(t => true);
-            }
-            
-            displayTickets(tickets);
+function loadTickets() {
+    if (!currentUser) return;
+    
+    var xhr = new XMLHttpRequest();
+    var url = API_BASE_URL + '/api/agent-tickets?agentId=' + currentUser.id;
+    xhr.open('GET', url, true);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            try {
+                var data = JSON.parse(xhr.responseText);
+                if (data.success) {
+                    var tickets = data.tickets;
+                    
+                    if (currentTicketTab === 'winners') {
+                        tickets = tickets.filter(function(t) { return t.isWinner || t.is_winner; });
+                    } else if (currentTicketTab === 'cancelled') {
+                        tickets = tickets.filter(function(t) { return t.isCancelled || t.is_cancelled; });
+                    } else {
+                        tickets = tickets.filter(function(t) { return true; });
+                    }
+                    
+                    displayTickets(tickets);
+                }
+            } catch(e) {}
         }
-    } catch (error) {
-        console.error('Erreur:', error);
-    }
+    };
+    xhr.send();
 }
 
 function displayTickets(tickets) {
-    const container = document.getElementById('ticketsList');
+    var container = document.getElementById('ticketsList');
     
     if (tickets.length === 0) {
         container.innerHTML = '<p class="empty-message"><i class="fas fa-inbox"></i> Aucun ticket</p>';
         return;
     }
     
-    container.innerHTML = tickets.map(t => {
-        let statusClass = '';
-        let statusBadge = '';
+    var html = '';
+    for (var i = 0; i < tickets.length; i++) {
+        var t = tickets[i];
+        var statusClass = '';
+        var statusBadge = '';
         
-        const isCancelled = t.isCancelled || t.is_cancelled;
-        const isWinner = t.isWinner || t.is_winner;
-        const isFreeTicket = t.is_free_ticket === true;
-        const winAmount = t.winAmount || t.win_amount || 0;
+        var isCancelled = t.isCancelled || t.is_cancelled;
+        var isWinner = t.isWinner || t.is_winner;
+        var isFreeTicket = t.is_free_ticket === true;
+        var winAmount = t.winAmount || t.win_amount || 0;
         
         if (isCancelled) {
             statusClass = 'cancelled';
             statusBadge = '<span class="cancelled-badge"><i class="fas fa-ban"></i> ANNULÉ</span>';
         } else if (isWinner) {
             statusClass = 'winner';
-            statusBadge = `<span class="winner-badge"><i class="fas fa-trophy"></i> GAGNANT ! ${winAmount.toLocaleString()} GDS</span>`;
+            statusBadge = '<span class="winner-badge"><i class="fas fa-trophy"></i> GAGNANT ! ' + winAmount.toLocaleString() + ' GDS</span>';
         } else if (isFreeTicket) {
             statusClass = 'free';
             statusBadge = '<span class="free-badge"><i class="fas fa-gift"></i> TICKET GRATUIT</span>';
@@ -511,69 +440,69 @@ function displayTickets(tickets) {
             statusBadge = '<span class="pending-badge"><i class="fas fa-clock"></i> En attente</span>';
         }
         
-        // Affichage spécial pour ticket gratuit
-        let itemsList = '';
+        var itemsList = '';
         if (isFreeTicket) {
-            const freeNumber = t.items && t.items[0] ? t.items[0].number : '???';
-            itemsList = `<div class="ticket-item-detail free-number"><span class="item-number-ticket">${freeNumber}</span> <span class="item-type-ticket">(Lotto 5 chiffres - OFFERT)</span></div>`;
+            var freeNumber = t.items && t.items[0] ? t.items[0].number : '???';
+            itemsList = '<div class="ticket-item-detail free-number"><span class="item-number-ticket">' + freeNumber + '</span> <span class="item-type-ticket">(Lotto 5 chiffres - OFFERT)</span></div>';
+        } else if (t.items) {
+            for (var j = 0; j < t.items.length; j++) {
+                var item = t.items[j];
+                var typeText = item.ticketType === 'simple' ? '2ch' : (item.ticketType === 'three' ? '3ch' : '5ch');
+                var typeClass = item.ticketType === 'simple' ? 'type-simple' : (item.ticketType === 'three' ? 'type-three' : 'type-five');
+                itemsList += '<div class="ticket-item-detail ' + typeClass + '"><span class="item-number-ticket">' + item.number + '</span> <span class="item-type-ticket">(' + typeText + ')</span> : ' + item.amount.toLocaleString() + ' GDS</div>';
+            }
         } else {
-            itemsList = t.items ? t.items.map(item => {
-                let typeText = item.ticketType === 'simple' ? '2ch' : (item.ticketType === 'three' ? '3ch' : '5ch');
-                let typeClass = item.ticketType === 'simple' ? 'type-simple' : (item.ticketType === 'three' ? 'type-three' : 'type-five');
-                return `<div class="ticket-item-detail ${typeClass}"><span class="item-number-ticket">${item.number}</span> <span class="item-type-ticket">(${typeText})</span> : ${item.amount.toLocaleString()} GDS</div>`;
-            }).join('') : `<div>Numéro: ${t.number} : ${t.amount} GDS</div>`;
+            itemsList = '<div>Numéro: ' + t.number + ' : ' + t.amount + ' GDS</div>';
         }
         
-        const totalAmount = t.totalAmount || t.total_amount || t.amount || 0;
-        const drawingName = t.drawingName || t.drawing_name;
-        const ticketDate = t.date;
-        const notes = t.notes;
-        const cancelReason = t.cancelReason || t.cancel_reason;
-        const cancelledAt = t.cancelledAt || t.cancelled_at;
+        var totalAmount = t.totalAmount || t.total_amount || t.amount || 0;
+        var drawingName = t.drawingName || t.drawing_name;
+        var ticketDate = t.date;
+        var notes = t.notes;
+        var cancelReason = t.cancelReason || t.cancel_reason;
+        var cancelledAt = t.cancelledAt || t.cancelled_at;
         
-        // Infos client pour ticket gratuit
-        let clientInfo = '';
+        var clientInfo = '';
         if (isFreeTicket && (t.client_nom || t.client_prenom)) {
-            clientInfo = `<div><i class="fas fa-user"></i> Client: ${t.client_prenom || ''} ${t.client_nom || ''}</div>`;
+            clientInfo = '<div><i class="fas fa-user"></i> Client: ' + (t.client_prenom || '') + ' ' + (t.client_nom || '') + '</div>';
         }
         
-        return `
-            <div class="ticket-item ${statusClass}">
-                <div class="ticket-header">
-                    <strong><i class="fas fa-ticket-alt"></i> ${t.id}</strong>
-                    ${statusBadge}
-                </div>
-                <div class="ticket-items">
-                    ${itemsList}
-                </div>
-                <div class="ticket-footer">
-                    <div><strong>Total: ${totalAmount.toLocaleString()} GDS</strong></div>
-                    <div><i class="fas fa-calendar-alt"></i> Tirage: ${drawingName}</div>
-                    <div><i class="fas fa-clock"></i> Date: ${new Date(ticketDate).toLocaleString()}</div>
-                    ${clientInfo}
-                    ${notes ? `<div><i class="fas fa-sticky-note"></i> Notes: ${notes}</div>` : ''}
-                    ${isCancelled ? `<div class="cancel-info"><i class="fas fa-info-circle"></i> Annulé le: ${new Date(cancelledAt).toLocaleString()}<br>Motif: ${cancelReason}</div>` : ''}
-                </div>
-            </div>
-        `;
-    }).join('');
+        html += '<div class="ticket-item ' + statusClass + '">' +
+            '<div class="ticket-header">' +
+                '<strong><i class="fas fa-ticket-alt"></i> ' + t.id + '</strong>' +
+                statusBadge +
+            '</div>' +
+            '<div class="ticket-items">' + itemsList + '</div>' +
+            '<div class="ticket-footer">' +
+                '<div><strong>Total: ' + totalAmount.toLocaleString() + ' GDS</strong></div>' +
+                '<div><i class="fas fa-calendar-alt"></i> Tirage: ' + drawingName + '</div>' +
+                '<div><i class="fas fa-clock"></i> Date: ' + new Date(ticketDate).toLocaleString() + '</div>' +
+                clientInfo +
+                (notes ? '<div><i class="fas fa-sticky-note"></i> Notes: ' + notes + '</div>' : '') +
+                (isCancelled ? '<div class="cancel-info"><i class="fas fa-info-circle"></i> Annulé le: ' + new Date(cancelledAt).toLocaleString() + '<br>Motif: ' + cancelReason + '</div>' : '') +
+            '</div>' +
+        '</div>';
+    }
+    container.innerHTML = html;
 }
 
 function showTicketTab(tab) {
     currentTicketTab = tab;
-    const btns = document.querySelectorAll('.tab-btn');
-    btns.forEach(btn => btn.classList.remove('active'));
-    if (event && event.target) {
-        event.target.classList.add('active');
+    var btns = document.querySelectorAll('.tab-btn');
+    for (var i = 0; i < btns.length; i++) {
+        btns[i].classList.remove('active');
+    }
+    if (window.event && window.event.target) {
+        window.event.target.classList.add('active');
     }
     loadTickets();
 }
-// ========== ENREGISTRER CLIENT ET OBTENIR TICKET GRATUIT ==========
-async function registerClientAndGetFreeTicket() {
-    const prenom = document.getElementById('clientPrenom').value.trim();
-    const nom = document.getElementById('clientNom').value.trim();
-    const email = document.getElementById('clientEmail').value.trim();
-    const nif = document.getElementById('clientNif').value.trim();
+
+function registerClientAndGetFreeTicket() {
+    var prenom = document.getElementById('clientPrenom').value.trim();
+    var nom = document.getElementById('clientNom').value.trim();
+    var email = document.getElementById('clientEmail').value.trim();
+    var nif = document.getElementById('clientNif').value.trim();
     
     if (!prenom || !nom) {
         alert('Veuillez entrer au moins le prénom et le nom du client');
@@ -590,88 +519,48 @@ async function registerClientAndGetFreeTicket() {
         return;
     }
     
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/free-ticket`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                agentId: currentUser.id,
-                clientNom: nom,
-                clientPrenom: prenom,
-                clientEmail: email,
-                clientNif: nif
-            })
-        });
-        
-        const data = await response.json();
-        
-        const resultDiv = document.getElementById('freeTicketResult');
-        if (data.success) {
-            resultDiv.className = 'free-ticket-result success';
-            resultDiv.innerHTML = `
-                <i class="fas fa-gift"></i> 
-                <strong>Ticket gratuit offert !</strong><br>
-                Numéro: <span style="font-size: 20px; font-weight: bold;">${data.ticket.number}</span><br>
-                ID Ticket: ${data.ticket.id}
-            `;
-            
-            // ========== IMPRIMER LE TICKET GRATUIT ==========
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write(`
-                <html>
-                <head>
-                    <title>Ticket Gratuit - ${data.ticket.id}</title>
-                    <style>
-                        body { font-family: monospace; padding: 20px; text-align: center; }
-                        .ticket { border: 2px dashed #28a745; padding: 20px; max-width: 300px; margin: 0 auto; }
-                        h1 { color: #28a745; }
-                        .free { color: #28a745; font-weight: bold; }
-                        .number { font-size: 24px; font-weight: bold; margin: 15px 0; }
-                        .footer { margin-top: 15px; font-size: 10px; color: #666; }
-                    </style>
-                </head>
-                <body>
-                    <div class="ticket">
-                        <h1>🎁 TICKET GRATUIT 🎁</h1>
-                        <div><strong>Ticket N°:</strong> ${data.ticket.id}</div>
-                        <div><strong>Offert à:</strong> ${prenom} ${nom}</div>
-                        <div><strong>Email:</strong> ${email}</div>
-                        <hr>
-                        <div class="free">🎲 NUMÉRO GAGNANT 🎲</div>
-                        <div class="number">${data.ticket.number}</div>
-                        <div>(Lotto 5 chiffres)</div>
-                        <hr>
-                        <div class="footer">Ce ticket est gratuit - Bonne chance !</div>
-                        <div class="footer">MERCI POUR VOTRE CONFIANCE !</div>
-                    </div>
-                    <button onclick="window.print();setTimeout(()=>window.close(),500);">🖨️ Imprimer</button>
-                </body>
-                </html>
-            `);
-            printWindow.document.close();
-            
-            // Réinitialiser les champs
-            document.getElementById('clientPrenom').value = '';
-            document.getElementById('clientNom').value = '';
-            document.getElementById('clientEmail').value = '';
-            document.getElementById('clientNif').value = '';
-            
-            // Rafraîchir les stats
-            loadAgentStats();
-            loadTickets();
-        } else {
-            resultDiv.className = 'free-ticket-result error';
-            resultDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${data.message}`;
+    var xhr = new XMLHttpRequest();
+    var url = API_BASE_URL + '/api/free-ticket';
+    xhr.open('POST', url, true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            try {
+                var data = JSON.parse(xhr.responseText);
+                var resultDiv = document.getElementById('freeTicketResult');
+                if (data.success) {
+                    resultDiv.className = 'free-ticket-result success';
+                    resultDiv.innerHTML = '<i class="fas fa-gift"></i> <strong>Ticket gratuit offert !</strong><br>Numéro: <span style="font-size: 20px; font-weight: bold;">' + data.ticket.number + '</span><br>ID Ticket: ' + data.ticket.id;
+                    
+                    var printWindow = window.open('', '_blank');
+                    printWindow.document.write('<!DOCTYPE html><html><head><title>Ticket Gratuit</title><style>body{font-family:monospace;padding:20px;text-align:center}.ticket{border:2px dashed #28a745;padding:20px;max-width:300px;margin:0 auto}h1{color:#28a745}.free{color:#28a745;font-weight:bold}.number{font-size:24px;font-weight:bold;margin:15px 0}.footer{margin-top:15px;font-size:10px;color:#666}</style></head><body>' +
+                        '<div class="ticket"><h1>🎁 TICKET GRATUIT 🎁</h1><div><strong>Ticket N°:</strong> ' + data.ticket.id + '</div>' +
+                        '<div><strong>Offert à:</strong> ' + prenom + ' ' + nom + '</div><div><strong>Email:</strong> ' + email + '</div><hr>' +
+                        '<div class="free">🎲 NUMÉRO GAGNANT 🎲</div><div class="number">' + data.ticket.number + '</div><div>(Lotto 5 chiffres)</div><hr>' +
+                        '<div class="footer">Ce ticket est gratuit - Bonne chance !</div><div class="footer">MERCI POUR VOTRE CONFIANCE !</div></div>' +
+                        '<button onclick="window.print();setTimeout(()=>window.close(),500);">🖨️ Imprimer</button></body></html>');
+                    printWindow.document.close();
+                    
+                    document.getElementById('clientPrenom').value = '';
+                    document.getElementById('clientNom').value = '';
+                    document.getElementById('clientEmail').value = '';
+                    document.getElementById('clientNif').value = '';
+                    loadAgentStats();
+                    loadTickets();
+                } else {
+                    resultDiv.className = 'free-ticket-result error';
+                    resultDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + data.message;
+                }
+                setTimeout(function() {
+                    resultDiv.style.display = 'none';
+                    resultDiv.className = 'free-ticket-result';
+                }, 5000);
+            } catch(e) {}
         }
-        
-        setTimeout(() => {
-            resultDiv.style.display = 'none';
-            resultDiv.className = 'free-ticket-result';
-        }, 5000);
-    } catch (error) {
-        alert('Erreur de connexion');
-    }
+    };
+    xhr.send(JSON.stringify({ agentId: currentUser.id, clientNom: nom, clientPrenom: prenom, clientEmail: email, clientNif: nif }));
 }
+
 function logout() {
     currentUser = null;
     currentItems = [];
@@ -680,10 +569,8 @@ function logout() {
     document.getElementById('username').value = '';
     document.getElementById('password').value = '';
 }
-// ========== GESTION DES PAGES/POPUPS ==========
-function toggleMenu() {
-    // Pour le menu mobile (optionnel)
-}
+
+function toggleMenu() {}
 
 function showClientPage() {
     document.getElementById('clientPage').style.display = 'flex';
@@ -695,7 +582,7 @@ function closeClientPage() {
 
 function showTicketsPage() {
     document.getElementById('ticketsPage').style.display = 'flex';
-    loadTickets(); // Rafraîchir la liste
+    loadTickets();
 }
 
 function closeTicketsPage() {
@@ -703,7 +590,6 @@ function closeTicketsPage() {
 }
 
 function showRapportPage() {
-    // Mettre à jour les stats dans le rapport
     document.getElementById('rapportSales').innerText = document.getElementById('statSales').innerText;
     document.getElementById('rapportWins').innerText = document.getElementById('statWins').innerText;
     document.getElementById('rapportProfit').innerText = document.getElementById('statProfit').innerText;
@@ -717,54 +603,30 @@ function closeRapportPage() {
 }
 
 function printRapport() {
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
-        <html>
-        <head>
-            <title>Rapport - ${currentUser.agentName || currentUser.name}</title>
-            <style>
-                body { font-family: Arial; padding: 20px; }
-                h1 { color: #1e3c72; text-align: center; }
-                .info { text-align: center; margin-bottom: 20px; }
-                table { width: 100%; border-collapse: collapse; }
-                td { padding: 10px; border-bottom: 1px solid #ddd; }
-                .label { font-weight: bold; }
-                .total { font-weight: bold; font-size: 18px; color: #28a745; }
-            </style>
-        </head>
-        <body>
-            <h1>📊 RAPPORT DE VENTES</h1>
-            <div class="info">
-                Agent: ${currentUser.agentName || currentUser.name}<br>
-                Zone: ${currentUser.zone}<br>
-                Date: ${new Date().toLocaleDateString('fr-FR')}
-            </div>
-            <table>
-                <tr><td class="label">💰 Ventes totales :</td><td>${document.getElementById('statSales').innerText}</td></tr>
-                <tr><td class="label">🏆 Gains :</td><td>${document.getElementById('statWins').innerText}</td></tr>
-                <tr><td class="label">📈 Bénéfice net :</td><td>${document.getElementById('statProfit').innerText}</td></tr>
-                <tr><td class="label">💵 Commission :</td><td>${document.getElementById('statCommission').innerText}</td></tr>
-                <tr class="total"><td class="label">💰 Solde actuel :</td><td>${document.getElementById('statBalance').innerText}</td></tr>
-            </table>
-            <p style="text-align:center; margin-top:30px;">Document généré par Borlette Pro</p>
-        </body>
-        </html>
-    `);
+    var printWindow = window.open('', '_blank');
+    printWindow.document.write('<!DOCTYPE html><html><head><title>Rapport</title><style>body{font-family:Arial;padding:20px}h1{color:#1e3c72;text-align:center}.info{text-align:center;margin-bottom:20px}td{padding:10px;border-bottom:1px solid #ddd}.label{font-weight:bold}.total{font-weight:bold;font-size:18px;color:#28a745}</style></head><body>' +
+        '<h1>📊 RAPPORT DE VENTES</h1><div class="info">Agent: ' + (currentUser.agentName || currentUser.name) + '<br>Zone: ' + currentUser.zone + '<br>Date: ' + new Date().toLocaleDateString('fr-FR') + '</div>' +
+        '<table><tr><td class="label">💰 Ventes totales :</td><td>' + document.getElementById('statSales').innerText + '</td></tr>' +
+        '<tr><td class="label">🏆 Gains :</td><td>' + document.getElementById('statWins').innerText + '</td></tr>' +
+        '<tr><td class="label">📈 Bénéfice net :</td><td>' + document.getElementById('statProfit').innerText + '</td></tr>' +
+        '<tr><td class="label">💵 Commission :</td><td>' + document.getElementById('statCommission').innerText + '</td></tr>' +
+        '<tr class="total"><td class="label">💰 Solde actuel :</td><td>' + document.getElementById('statBalance').innerText + '</td></tr></table>' +
+        '<p style="text-align:center;margin-top:30px;">Document généré par Borlette Pro</p></body></html>');
     printWindow.document.close();
     printWindow.print();
 }
-// ========== MODE SOMBRE ==========
+
 function initDarkMode() {
-    const darkMode = localStorage.getItem('darkMode');
+    var darkMode = localStorage.getItem('darkMode');
     if (darkMode === 'enabled') {
         document.body.classList.add('dark-mode');
-        const toggleBtn = document.getElementById('darkModeToggle');
+        var toggleBtn = document.getElementById('darkModeToggle');
         if (toggleBtn) toggleBtn.innerHTML = '<i class="fas fa-sun"></i>';
     }
 }
 
 function toggleDarkMode() {
-    const toggleBtn = document.getElementById('darkModeToggle');
+    var toggleBtn = document.getElementById('darkModeToggle');
     if (document.body.classList.contains('dark-mode')) {
         document.body.classList.remove('dark-mode');
         localStorage.setItem('darkMode', 'disabled');
@@ -776,36 +638,28 @@ function toggleDarkMode() {
     }
 }
 
-// ========== INITIALISATION ==========
 document.addEventListener('DOMContentLoaded', function() {
-    // Mode sombre
     initDarkMode();
-    const toggleBtn = document.getElementById('darkModeToggle');
+    var toggleBtn = document.getElementById('darkModeToggle');
     if (toggleBtn) toggleBtn.addEventListener('click', toggleDarkMode);
     
-    // Support des touches Entrée pour l'ajout de numéros
-    const inputNumber = document.getElementById('inputNumber');
-    const inputAmount = document.getElementById('inputAmount');
+    var inputNumber = document.getElementById('inputNumber');
+    var inputAmount = document.getElementById('inputAmount');
     
     if (inputNumber) {
         inputNumber.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                addNumber();
-            }
+            if (e.key === 'Enter') addNumber();
         });
     }
     
     if (inputAmount) {
         inputAmount.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                addNumber();
-            }
+            if (e.key === 'Enter') addNumber();
         });
     }
     
-    // Touche Entrée pour la connexion
-    const usernameInput = document.getElementById('username');
-    const passwordInput = document.getElementById('password');
+    var usernameInput = document.getElementById('username');
+    var passwordInput = document.getElementById('password');
     
     function handleEnter(e) {
         if (e.key === 'Enter') {
