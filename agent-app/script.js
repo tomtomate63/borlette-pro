@@ -485,6 +485,78 @@ function displayTickets(tickets) {
     }
     container.innerHTML = html;
 }
+function canCancelTicket(ticketDate) {
+    var ticketTime = new Date(ticketDate).getTime();
+    var now = new Date().getTime();
+    var diffMinutes = (now - ticketTime) / (1000 * 60);
+    return diffMinutes <= 10;
+}
+
+function cancelTicketWithTimeLimit() {
+    var ticketId = document.getElementById('cancelTicketId').value.trim();
+    var reason = document.getElementById('cancelReason').value.trim() || 'Annulation client';
+    
+    if (!ticketId) {
+        alert('Entrez le numéro du ticket à annuler');
+        return;
+    }
+    
+    // D'abord récupérer le ticket pour vérifier la date
+    var xhr = new XMLHttpRequest();
+    var url = API_BASE_URL + '/api/agent-tickets?agentId=' + currentUser.id;
+    xhr.open('GET', url, true);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            try {
+                var data = JSON.parse(xhr.responseText);
+                var ticket = data.tickets.find(function(t) { return t.id === ticketId; });
+                
+                if (!ticket) {
+                    alert('Ticket non trouvé');
+                    return;
+                }
+                
+                if (!canCancelTicket(ticket.date)) {
+                    alert('❌ Délai dépassé ! Ce ticket ne peut plus être annulé (délai de 10 minutes).');
+                    return;
+                }
+                
+                // Procéder à l'annulation
+                var cancelXhr = new XMLHttpRequest();
+                var cancelUrl = API_BASE_URL + '/api/cancel-ticket';
+                cancelXhr.open('PUT', cancelUrl, true);
+                cancelXhr.setRequestHeader('Content-Type', 'application/json');
+                cancelXhr.onreadystatechange = function() {
+                    if (cancelXhr.readyState === 4 && cancelXhr.status === 200) {
+                        try {
+                            var cancelData = JSON.parse(cancelXhr.responseText);
+                            var resultDiv = document.getElementById('cancelResult');
+                            if (cancelData.success) {
+                                resultDiv.className = 'cancel-result success';
+                                resultDiv.innerHTML = '<i class="fas fa-check-circle"></i> ✅ ' + cancelData.message;
+                                document.getElementById('cancelTicketId').value = '';
+                                document.getElementById('cancelReason').value = '';
+                                loadAgentStats();
+                                loadTickets();
+                            } else {
+                                resultDiv.className = 'cancel-result error';
+                                resultDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> ❌ ' + cancelData.message;
+                            }
+                            setTimeout(function() {
+                                resultDiv.style.display = 'none';
+                                resultDiv.className = 'cancel-result';
+                            }, 3000);
+                        } catch(e) {}
+                    }
+                };
+                cancelXhr.send(JSON.stringify({ ticketId: ticketId, agentId: currentUser.id, reason: reason }));
+            } catch(e) {
+                alert('Erreur lors de la vérification');
+            }
+        }
+    };
+    xhr.send();
+}
 
 function showTicketTab(tab) {
     currentTicketTab = tab;
@@ -532,14 +604,43 @@ function registerClientAndGetFreeTicket() {
                     resultDiv.className = 'free-ticket-result success';
                     resultDiv.innerHTML = '<i class="fas fa-gift"></i> <strong>Ticket gratuit offert !</strong><br>Numéro: <span style="font-size: 20px; font-weight: bold;">' + data.ticket.number + '</span><br>ID Ticket: ' + data.ticket.id;
                     
+                    // Générer le texte du ticket gratuit pour impression
+                    var ticketText = '';
+                    ticketText += '================================\n';
+                    ticketText += '      TICKET GRATUIT\n';
+                    ticketText += '================================\n\n';
+                    ticketText += 'Ticket N°: ' + data.ticket.id + '\n';
+                    ticketText += 'Offert à: ' + prenom + ' ' + nom + '\n';
+                    ticketText += 'Email: ' + email + '\n';
+                    if (nif) ticketText += 'NIF: ' + nif + '\n';
+                    ticketText += '--------------------------------\n\n';
+                    ticketText += '🎲 NUMÉRO GAGNANT: ' + data.ticket.number + '\n';
+                    ticketText += '(Lotto 5 chiffres)\n\n';
+                    ticketText += '================================\n';
+                    ticketText += 'Ce ticket est gratuit - Bonne chance !\n';
+                    ticketText += 'MERCI POUR VOTRE CONFIANCE !\n';
+                    ticketText += '================================\n';
+                    
+                    // Créer une fenêtre d'impression
                     var printWindow = window.open('', '_blank');
-                    printWindow.document.write('<!DOCTYPE html><html><head><title>Ticket Gratuit</title><style>body{font-family:monospace;padding:20px;text-align:center}.ticket{border:2px dashed #28a745;padding:20px;max-width:300px;margin:0 auto}h1{color:#28a745}.free{color:#28a745;font-weight:bold}.number{font-size:24px;font-weight:bold;margin:15px 0}.footer{margin-top:15px;font-size:10px;color:#666}</style></head><body>' +
-                        '<div class="ticket"><h1>🎁 TICKET GRATUIT 🎁</h1><div><strong>Ticket N°:</strong> ' + data.ticket.id + '</div>' +
-                        '<div><strong>Offert à:</strong> ' + prenom + ' ' + nom + '</div><div><strong>Email:</strong> ' + email + '</div><hr>' +
-                        '<div class="free">🎲 NUMÉRO GAGNANT 🎲</div><div class="number">' + data.ticket.number + '</div><div>(Lotto 5 chiffres)</div><hr>' +
-                        '<div class="footer">Ce ticket est gratuit - Bonne chance !</div><div class="footer">MERCI POUR VOTRE CONFIANCE !</div></div>' +
-                        '<button onclick="window.print();setTimeout(()=>window.close(),500);">🖨️ Imprimer</button></body></html>');
+                    printWindow.document.write('<html><head>');
+                    printWindow.document.write('<title>Ticket Gratuit - ' + data.ticket.id + '</title>');
+                    printWindow.document.write('<style>');
+                    printWindow.document.write('body { font-family: monospace; padding: 20px; margin: 0; }');
+                    printWindow.document.write('pre { font-size: 14px; margin: 0; white-space: pre; }');
+                    printWindow.document.write('</style>');
+                    printWindow.document.write('</head><body>');
+                    printWindow.document.write('<pre>' + ticketText + '</pre>');
+                    printWindow.document.write('</body></html>');
                     printWindow.document.close();
+                    
+                    // Déclencher l'impression
+                    printWindow.print();
+                    
+                    // Fermer après impression
+                    setTimeout(function() {
+                        printWindow.close();
+                    }, 1000);
                     
                     document.getElementById('clientPrenom').value = '';
                     document.getElementById('clientNom').value = '';
@@ -555,7 +656,10 @@ function registerClientAndGetFreeTicket() {
                     resultDiv.style.display = 'none';
                     resultDiv.className = 'free-ticket-result';
                 }, 5000);
-            } catch(e) {}
+            } catch(e) {
+                console.error('Erreur:', e);
+                alert('Erreur lors de l\'enregistrement');
+            }
         }
     };
     xhr.send(JSON.stringify({ agentId: currentUser.id, clientNom: nom, clientPrenom: prenom, clientEmail: email, clientNif: nif }));
@@ -590,30 +694,74 @@ function closeTicketsPage() {
 }
 
 function showRapportPage() {
-    document.getElementById('rapportSales').innerText = document.getElementById('statSales').innerText;
-    document.getElementById('rapportWins').innerText = document.getElementById('statWins').innerText;
-    document.getElementById('rapportProfit').innerText = document.getElementById('statProfit').innerText;
-    document.getElementById('rapportCommission').innerText = document.getElementById('statCommission').innerText;
-    document.getElementById('rapportBalance').innerText = document.getElementById('statBalance').innerText;
+    // Récupérer les valeurs actuelles
+    var salesText = document.getElementById('statSales').innerText;
+    var winsText = document.getElementById('statWins').innerText;
+    var profitText = document.getElementById('statProfit').innerText;
+    var commissionText = document.getElementById('statCommission').innerText;
+    var balanceText = document.getElementById('statBalance').innerText;
+    
+    // Mettre à jour le rapport
+    document.getElementById('rapportSales').innerText = salesText;
+    document.getElementById('rapportWins').innerText = winsText;
+    document.getElementById('rapportProfit').innerText = profitText;
+    document.getElementById('rapportCommission').innerText = commissionText;
+    document.getElementById('rapportBalance').innerText = balanceText;
+    
+    // Afficher la page
     document.getElementById('rapportPage').style.display = 'flex';
 }
 
-function closeRapportPage() {
-    document.getElementById('rapportPage').style.display = 'none';
-}
-
 function printRapport() {
+    var agentName = (currentUser.agentName || currentUser.name);
+    var zone = currentUser.zone;
+    var date = new Date().toLocaleDateString('fr-FR');
+    var time = new Date().toLocaleTimeString('fr-FR');
+    
+    var sales = document.getElementById('rapportSales').innerText;
+    var wins = document.getElementById('rapportWins').innerText;
+    var profit = document.getElementById('rapportProfit').innerText;
+    var commission = document.getElementById('rapportCommission').innerText;
+    var balance = document.getElementById('rapportBalance').innerText;
+    
+    var content = '';
+    content += '================================\n';
+    content += '      RAPPORT DE VENTES\n';
+    content += '================================\n\n';
+    content += 'Agent: ' + agentName + '\n';
+    content += 'Zone: ' + zone + '\n';
+    content += 'Date: ' + date + '\n';
+    content += 'Heure: ' + time + '\n';
+    content += '--------------------------------\n\n';
+    content += '💰 Ventes totales: ' + sales + '\n';
+    content += '🏆 Gains: ' + wins + '\n';
+    content += '📈 Bénéfice net: ' + profit + '\n';
+    content += '💵 Commission: ' + commission + '\n';
+    content += '💰 Solde actuel: ' + balance + '\n\n';
+    content += '================================\n';
+    content += 'Document généré par Borlette Pro\n';
+    content += '================================\n';
+    
+    // Créer une fenêtre d'impression
     var printWindow = window.open('', '_blank');
-    printWindow.document.write('<!DOCTYPE html><html><head><title>Rapport</title><style>body{font-family:Arial;padding:20px}h1{color:#1e3c72;text-align:center}.info{text-align:center;margin-bottom:20px}td{padding:10px;border-bottom:1px solid #ddd}.label{font-weight:bold}.total{font-weight:bold;font-size:18px;color:#28a745}</style></head><body>' +
-        '<h1>📊 RAPPORT DE VENTES</h1><div class="info">Agent: ' + (currentUser.agentName || currentUser.name) + '<br>Zone: ' + currentUser.zone + '<br>Date: ' + new Date().toLocaleDateString('fr-FR') + '</div>' +
-        '<table><tr><td class="label">💰 Ventes totales :</td><td>' + document.getElementById('statSales').innerText + '</td></tr>' +
-        '<tr><td class="label">🏆 Gains :</td><td>' + document.getElementById('statWins').innerText + '</td></tr>' +
-        '<tr><td class="label">📈 Bénéfice net :</td><td>' + document.getElementById('statProfit').innerText + '</td></tr>' +
-        '<tr><td class="label">💵 Commission :</td><td>' + document.getElementById('statCommission').innerText + '</td></tr>' +
-        '<tr class="total"><td class="label">💰 Solde actuel :</td><td>' + document.getElementById('statBalance').innerText + '</td></tr></table>' +
-        '<p style="text-align:center;margin-top:30px;">Document généré par Borlette Pro</p></body></html>');
+    printWindow.document.write('<html><head>');
+    printWindow.document.write('<title>Rapport Borlette</title>');
+    printWindow.document.write('<style>');
+    printWindow.document.write('body { font-family: monospace; padding: 20px; margin: 0; }');
+    printWindow.document.write('pre { font-size: 14px; margin: 0; white-space: pre; }');
+    printWindow.document.write('</style>');
+    printWindow.document.write('</head><body>');
+    printWindow.document.write('<pre>' + content + '</pre>');
+    printWindow.document.write('</body></html>');
     printWindow.document.close();
+    
+    // Déclencher l'impression
     printWindow.print();
+    
+    // Fermer automatiquement après impression (optionnel)
+    setTimeout(function() {
+        printWindow.close();
+    }, 1000);
 }
 
 function initDarkMode() {
