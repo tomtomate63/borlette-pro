@@ -133,11 +133,11 @@ const server = http.createServer(async (req, res) => {
         return;
     }
     
-    if (url === '/') {
-        res.writeHead(302, { 'Location': '/agent-app/index.html' });
-        res.end();
-        return;
-    }
+   if (url === '/') {
+    let filePath = path.join(__dirname, 'app-unique', 'index.html');
+    serveStaticFile(filePath, res, 'text/html');
+    return;
+}
     
     // Helper pour parser le body
     const parseBody = () => {

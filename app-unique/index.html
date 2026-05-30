@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Borlette Pro - Solution Intégrée</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- PAGE DE CONNEXION -->
+    <div id="loginPage" class="login-page">
+        <div class="login-box">
+            <h1><i class="fas fa-dice"></i> Borlette Pro</h1>
+            <p>Solution intégrée de gestion</p>
+            <input type="text" id="username" placeholder="Identifiant">
+            <input type="password" id="password" placeholder="Mot de passe">
+            <button onclick="login()"><i class="fas fa-sign-in-alt"></i> SE CONNECTER</button>
+            <div id="errorMsg" class="error"></div>
+        </div>
+    </div>
+
+    <!-- APPLICATION PRINCIPALE (affichée après connexion) -->
+    <div id="appPage" class="app-page" style="display: none;">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-chart-line"></i> Borlette Pro</h2>
+                <p id="userRoleDisplay"></p>
+            </div>
+            <div class="nav-menu" id="navMenu">
+                <!-- Les boutons seront générés automatiquement selon le rôle -->
+            </div>
+            <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
+        </div>
+
+        <div class="main-content">
+            <div class="header">
+                <h1 id="sectionTitle">Tableau de bord</h1>
+                <div id="userInfo" class="user-info"></div>
+            </div>
+
+            <!-- SECTION: VENTE (Agent et Caissier) -->
+            <div id="salesSection" class="section" style="display: none;">
+                <div class="card">
+                    <h3><i class="fas fa-edit"></i> Vendre un ticket</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Numéro</label>
+                            <input type="text" id="inputNumber" placeholder="00, 000, 12345">
+                        </div>
+                        <div class="form-group">
+                            <label>Montant (GDS)</label>
+                            <input type="number" id="inputAmount" value="10">
+                        </div>
+                        <div class="form-group">
+                            <label>Type</label>
+                            <select id="inputType">
+                                <option value="simple">2 chiffres</option>
+                                <option value="three">3 chiffres</option>
+                                <option value="five">5 chiffres</option>
+                            </select>
+                        </div>
+                        <button class="add-btn" onclick="addNumber()"><i class="fas fa-plus"></i> Ajouter</button>
+                    </div>
+                    <div id="itemsList" class="items-list"></div>
+                    <div class="total-row">Total: <span id="totalAmount">0</span> GDS</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tirage</label>
+                            <select id="drawingName">
+                                <option>New York Midday</option>
+                                <option>New York Night</option>
+                                <option>Florida Midday</option>
+                                <option>Florida Night</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Notes</label>
+                            <input type="text" id="ticketNotes" placeholder="Ex: Client Jean">
+                        </div>
+                    </div>
+                    <button class="print-btn" onclick="printTicket()"><i class="fas fa-print"></i> IMPRIMER</button>
+                    <button class="cancel-sale-btn" onclick="clearItems()"><i class="fas fa-trash"></i> Annuler la vente</button>
+                </div>
+
+                <!-- Ticket gratuit pour client (Agent uniquement) -->
+                <div id="clientFreeSection" class="card" style="display: none;">
+                    <h3><i class="fas fa-gift"></i> Ticket gratuit client</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Prénom</label>
+                            <input type="text" id="clientPrenom" placeholder="Prénom">
+                        </div>
+                        <div class="form-group">
+                            <label>Nom</label>
+                            <input type="text" id="clientNom" placeholder="Nom">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="clientEmail" placeholder="email@exemple.com">
+                        </div>
+                        <div class="form-group">
+                            <label>NIF</label>
+                            <input type="text" id="clientNif" placeholder="NIF (optionnel)">
+                        </div>
+                    </div>
+                    <button class="free-ticket-btn" onclick="registerClientAndGetFreeTicket()">
+                        <i class="fas fa-gift"></i> Enregistrer et recevoir un ticket gratuit
+                    </button>
+                    <div id="freeTicketResult"></div>
+                </div>
+
+                <!-- Section Tickets (Agent + Caissier) -->
+                <div class="card">
+                    <h3><i class="fas fa-ticket-alt"></i> Mes tickets</h3>
+                    <div class="ticket-tabs">
+                        <button class="tab-btn active" onclick="showTicketTab('all')">Tous</button>
+                        <button class="tab-btn" onclick="showTicketTab('winners')">Gagnants</button>
+                        <button class="tab-btn" onclick="showTicketTab('cancelled')">Annulés</button>
+                    </div>
+                    <div id="ticketsList" class="tickets-list"></div>
+                </div>
+            </div>
+
+            <!-- SECTION: DÉCHARGEMENT (Caissier uniquement) -->
+            <div id="depositSection" class="section" style="display: none;">
+                <div class="card">
+                    <h3><i class="fas fa-hand-holding-usd"></i> Décharger un agent</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Agent (ID ou nom)</label>
+                            <input type="text" id="depositAgentId" placeholder="ID ou nom">
+                        </div>
+                        <div class="form-group">
+                            <label>Montant (GDS)</label>
+                            <input type="number" id="depositAmount" placeholder="Montant">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Notes</label>
+                            <input type="text" id="depositNotes" placeholder="Motif">
+                        </div>
+                    </div>
+                    <button class="deposit-btn" onclick="makeDeposit()"><i class="fas fa-arrow-down"></i> Enregistrer</button>
+                    <div id="depositResult"></div>
+                </div>
+            </div>
+
+            <!-- SECTION: PAIEMENT GAGNANT (Caissier uniquement) -->
+            <div id="paymentSection" class="section" style="display: none;">
+                <div class="card">
+                    <h3><i class="fas fa-money-bill-wave"></i> Payer un ticket gagnant</h3>
+                    <div class="form-group">
+                        <label>Numéro du ticket</label>
+                        <input type="text" id="payTicketId" placeholder="Ex: TKT-20240101-1234">
+                    </div>
+                    <button class="pay-btn" onclick="payWinnerTicket()"><i class="fas fa-check-circle"></i> Payer</button>
+                    <div id="payResult"></div>
+                </div>
+            </div>
+
+            <!-- SECTION: TRANSFERT (Caissier uniquement) -->
+            <div id="transferSection" class="section" style="display: none;">
+                <div class="card">
+                    <h3><i class="fas fa-exchange-alt"></i> Transférer entre points</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>De</label>
+                            <select id="transferFrom"></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Vers</label>
+                            <select id="transferTo"></select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Montant</label>
+                            <input type="number" id="transferAmount" placeholder="Montant">
+                        </div>
+                        <div class="form-group">
+                            <label>Notes</label>
+                            <input type="text" id="transferNotes" placeholder="Motif">
+                        </div>
+                    </div>
+                    <button class="transfer-btn" onclick="makeTransfer()"><i class="fas fa-exchange-alt"></i> Transférer</button>
+                    <div id="transferResult"></div>
+                </div>
+            </div>
+
+            <!-- SECTION: RAPPORT (tous les rôles) -->
+            <div id="reportsSection" class="section" style="display: none;">
+                <div class="card">
+                    <h3><i class="fas fa-chart-bar"></i> Mes statistiques</h3>
+                    <div class="rapport-stats">
+                        <div class="rapport-item"><span>💰 Ventes :</span><strong id="reportSales">0 GDS</strong></div>
+                        <div class="rapport-item"><span>🏆 Gains :</span><strong id="reportWins">0 GDS</strong></div>
+                        <div class="rapport-item"><span>📈 Bénéfice :</span><strong id="reportProfit">0 GDS</strong></div>
+                        <div class="rapport-item"><span>💵 Commission :</span><strong id="reportCommission">0 GDS</strong></div>
+                        <div class="rapport-item"><span>💰 Solde :</span><strong id="reportBalance">0 GDS</strong></div>
+                    </div>
+                    <button class="print-report-btn" onclick="printRapport()"><i class="fas fa-print"></i> Imprimer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
