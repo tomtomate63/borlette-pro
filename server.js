@@ -111,7 +111,20 @@ const server = http.createServer(async (req, res) => {
         serveStaticFile(filePath, res, contentType);
         return;
     }
-    
+    // Servir app-unique
+if (url.startsWith('/app-unique/')) {
+    let filePath = path.join(__dirname, 'app-unique', url.replace('/app-unique/', ''));
+    if (filePath.endsWith('/') || !path.extname(filePath)) {
+        filePath = path.join(filePath, 'index.html');
+    }
+    const ext = path.extname(filePath);
+    let contentType = 'text/html';
+    if (ext === '.css') contentType = 'text/css';
+    if (ext === '.js') contentType = 'application/javascript';
+    serveStaticFile(filePath, res, contentType);
+    return;
+}
+
     if (url === '/manifest.json') {
         let filePath = path.join(__dirname, 'manifest.json');
         serveStaticFile(filePath, res, 'application/json');

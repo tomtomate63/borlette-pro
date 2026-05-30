@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Borlette Pro - Solution Intégrée</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/app-unique/style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/promise-polyfill@8/dist/polyfill.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/whatwg-fetch@3.0.0/dist/fetch.umd.min.js"></script>
 </head>
 <body>
     <!-- PAGE DE CONNEXION -->
@@ -20,27 +22,27 @@
         </div>
     </div>
 
-    <!-- APPLICATION PRINCIPALE (affichée après connexion) -->
+    <!-- APPLICATION PRINCIPALE -->
     <div id="appPage" class="app-page" style="display: none;">
+        <!-- SIDEBAR -->
         <div class="sidebar">
             <div class="sidebar-header">
                 <h2><i class="fas fa-chart-line"></i> Borlette Pro</h2>
                 <p id="userRoleDisplay"></p>
             </div>
-            <div class="nav-menu" id="navMenu">
-                <!-- Les boutons seront générés automatiquement selon le rôle -->
-            </div>
+            <div class="nav-menu" id="navMenu"></div>
             <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
         </div>
 
+        <!-- MAIN CONTENT -->
         <div class="main-content">
             <div class="header">
-                <h1 id="sectionTitle">Tableau de bord</h1>
+                <h1 id="sectionTitle">Vente de tickets</h1>
                 <div id="userInfo" class="user-info"></div>
             </div>
 
-            <!-- SECTION: VENTE (Agent et Caissier) -->
-            <div id="salesSection" class="section" style="display: none;">
+            <!-- SECTION VENTE -->
+            <div id="salesSection" class="section" style="display: block;">
                 <div class="card">
                     <h3><i class="fas fa-edit"></i> Vendre un ticket</h3>
                     <div class="form-row">
@@ -72,6 +74,11 @@
                                 <option>New York Night</option>
                                 <option>Florida Midday</option>
                                 <option>Florida Night</option>
+                                <option>GA Midday</option>
+                                <option>GA Evening</option>
+                                <option>GA Night</option>
+                                <option>TN Morning</option>
+                                <option>TN Evening</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -83,7 +90,7 @@
                     <button class="cancel-sale-btn" onclick="clearItems()"><i class="fas fa-trash"></i> Annuler la vente</button>
                 </div>
 
-                <!-- Ticket gratuit pour client (Agent uniquement) -->
+                <!-- Ticket gratuit (visible uniquement pour les agents) -->
                 <div id="clientFreeSection" class="card" style="display: none;">
                     <h3><i class="fas fa-gift"></i> Ticket gratuit client</h3>
                     <div class="form-row">
@@ -112,7 +119,7 @@
                     <div id="freeTicketResult"></div>
                 </div>
 
-                <!-- Section Tickets (Agent + Caissier) -->
+                <!-- Section Tickets -->
                 <div class="card">
                     <h3><i class="fas fa-ticket-alt"></i> Mes tickets</h3>
                     <div class="ticket-tabs">
@@ -124,7 +131,7 @@
                 </div>
             </div>
 
-            <!-- SECTION: DÉCHARGEMENT (Caissier uniquement) -->
+            <!-- SECTION DÉCHARGEMENT (Caissier/Admin) -->
             <div id="depositSection" class="section" style="display: none;">
                 <div class="card">
                     <h3><i class="fas fa-hand-holding-usd"></i> Décharger un agent</h3>
@@ -149,7 +156,7 @@
                 </div>
             </div>
 
-            <!-- SECTION: PAIEMENT GAGNANT (Caissier uniquement) -->
+            <!-- SECTION PAIEMENT GAGNANT (Caissier/Admin) -->
             <div id="paymentSection" class="section" style="display: none;">
                 <div class="card">
                     <h3><i class="fas fa-money-bill-wave"></i> Payer un ticket gagnant</h3>
@@ -162,7 +169,7 @@
                 </div>
             </div>
 
-            <!-- SECTION: TRANSFERT (Caissier uniquement) -->
+            <!-- SECTION TRANSFERT (Caissier/Admin) -->
             <div id="transferSection" class="section" style="display: none;">
                 <div class="card">
                     <h3><i class="fas fa-exchange-alt"></i> Transférer entre points</h3>
@@ -191,7 +198,7 @@
                 </div>
             </div>
 
-            <!-- SECTION: RAPPORT (tous les rôles) -->
+            <!-- SECTION RAPPORT -->
             <div id="reportsSection" class="section" style="display: none;">
                 <div class="card">
                     <h3><i class="fas fa-chart-bar"></i> Mes statistiques</h3>
@@ -208,6 +215,15 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- Champs cachés pour les stats -->
+    <div style="display: none;">
+        <span id="statSales">0</span>
+        <span id="statWins">0</span>
+        <span id="statProfit">0</span>
+        <span id="statCommission">0</span>
+        <span id="statBalance">0</span>
+    </div>
+
+    <script src="/app-unique/script.js"></script>
 </body>
 </html>

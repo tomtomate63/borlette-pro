@@ -12,20 +12,19 @@ if (!deviceId) {
     localStorage.setItem('deviceId', deviceId);
 }
 
-// ========== CONFIGURATION DES RÔLES ET PERMISSIONS ==========
+// ========== CONFIGURATION DES RÔLES ==========
 var roleConfig = {
-    admin: {
-        name: 'Administrateur',
-        sections: ['dashboard', 'sales', 'reports', 'deposit', 'payment', 'transfer', 'tickets']
-    },
-    caissier: {
-        name: 'Caissier',
-        sections: ['sales', 'reports', 'deposit', 'payment', 'transfer', 'tickets']
-    },
-    agent: {
-        name: 'Agent',
-        sections: ['sales', 'reports', 'tickets']
-    }
+    admin: { name: 'Administrateur', sections: ['sales', 'reports', 'deposit', 'payment', 'transfer'] },
+    caissier: { name: 'Caissier', sections: ['sales', 'reports', 'deposit', 'payment', 'transfer'] },
+    agent: { name: 'Agent', sections: ['sales', 'reports'] }
+};
+
+var menuItems = {
+    sales: { icon: 'fa-ticket-alt', name: 'Vente' },
+    reports: { icon: 'fa-chart-bar', name: 'Rapports' },
+    deposit: { icon: 'fa-hand-holding-usd', name: 'Déchargement' },
+    payment: { icon: 'fa-money-bill-wave', name: 'Paiement gagnant' },
+    transfer: { icon: 'fa-exchange-alt', name: 'Transfert' }
 };
 
 // ========== FONCTIONS PRINCIPALES ==========
@@ -64,13 +63,14 @@ function login() {
                     document.getElementById('userRoleDisplay').innerHTML = roleConfig[role].name;
                     document.getElementById('userInfo').innerHTML = currentUser.agentName || currentUser.name;
                     
-                    // Générer le menu selon le rôle
+                    // Générer le menu
                     generateMenu(role);
                     
-                    // Charger les données initiales
+                    // Charger les données
                     loadAgentStats();
                     loadTickets();
                     loadPaymentPoints();
+                    loadPaymentPointsForTransfer();
                     
                     // Afficher la section par défaut
                     showSection('sales');
@@ -91,15 +91,6 @@ function generateMenu(role) {
     var sections = roleConfig[role].sections;
     var menuHtml = '';
     
-    var menuItems = {
-        sales: { icon: 'fa-ticket-alt', name: 'Vente' },
-        reports: { icon: 'fa-chart-bar', name: 'Rapports' },
-        deposit: { icon: 'fa-hand-holding-usd', name: 'Déchargement' },
-        payment: { icon: 'fa-money-bill-wave', name: 'Paiement gagnant' },
-        transfer: { icon: 'fa-exchange-alt', name: 'Transfert' },
-        tickets: { icon: 'fa-list', name: 'Mes tickets' }
-    };
-    
     for (var i = 0; i < sections.length; i++) {
         var sec = sections[i];
         if (menuItems[sec]) {
@@ -114,7 +105,7 @@ function generateMenu(role) {
 
 function showSection(section) {
     // Cacher toutes les sections
-    var sections = ['sales', 'reports', 'deposit', 'payment', 'transfer', 'tickets'];
+    var sections = ['sales', 'reports', 'deposit', 'payment', 'transfer'];
     for (var i = 0; i < sections.length; i++) {
         var secEl = document.getElementById(sections[i] + 'Section');
         if (secEl) secEl.style.display = 'none';
@@ -122,44 +113,29 @@ function showSection(section) {
     
     // Afficher la section demandée
     var targetSection = document.getElementById(section + 'Section');
-    if (targetSection) {
-        targetSection.style.display = 'block';
-    }
+    if (targetSection) targetSection.style.display = 'block';
     
-    // Afficher/cacher la section ticket gratuit (seulement pour agent)
+    // Afficher/cacher le ticket gratuit (seulement pour agent)
     var clientFreeSection = document.getElementById('clientFreeSection');
     if (clientFreeSection) {
-        if (currentUser && currentUser.role === 'agent') {
-            clientFreeSection.style.display = 'block';
-        } else {
-            clientFreeSection.style.display = 'none';
-        }
+        clientFreeSection.style.display = (currentUser && currentUser.role === 'agent') ? 'block' : 'none';
     }
     
-    // Mettre à jour le titre
+    // Titres
     var titles = {
         sales: 'Vente de tickets',
         reports: 'Mes statistiques',
         deposit: 'Déchargement',
         payment: 'Paiement ticket gagnant',
-        transfer: 'Transfert entre points',
-        tickets: 'Mes tickets'
+        transfer: 'Transfert entre points'
     };
     document.getElementById('sectionTitle').innerHTML = titles[section] || section;
     
-    // Recharger les données si nécessaire
-    if (section === 'reports') {
-        updateReportStats();
-    }
-    if (section === 'tickets') {
-        loadTickets();
-    }
-    if (section === 'deposit') {
-        loadPaymentPoints();
-    }
-    if (section === 'transfer') {
-        loadPaymentPointsForTransfer();
-    }
+    // Recharger
+    if (section === 'reports') updateReportStats();
+    if (section === 'tickets') loadTickets();
+    if (section === 'deposit') loadPaymentPoints();
+    if (section === 'transfer') loadPaymentPointsForTransfer();
 }
 
 // ========== STATISTIQUES ==========
@@ -175,6 +151,11 @@ function loadAgentStats() {
                 var data = JSON.parse(xhr.responseText);
                 if (data.success) {
                     agentStats = data.stats;
+                    document.getElementById('statSales').innerText = agentStats.totalSales || 0;
+                    document.getElementById('statWins').innerText = agentStats.totalWins || 0;
+                    document.getElementById('statProfit').innerText = agentStats.netProfit || 0;
+                    document.getElementById('statCommission').innerText = agentStats.commission || 0;
+                    document.getElementById('statBalance').innerText = agentStats.balance || 0;
                     updateReportStats();
                 }
             } catch(e) {}
@@ -185,7 +166,6 @@ function loadAgentStats() {
 
 function updateReportStats() {
     if (!agentStats) return;
-    
     document.getElementById('reportSales').innerHTML = (agentStats.totalSales || 0).toLocaleString() + ' GDS';
     document.getElementById('reportWins').innerHTML = (agentStats.totalWins || 0).toLocaleString() + ' GDS';
     document.getElementById('reportProfit').innerHTML = (agentStats.netProfit || 0).toLocaleString() + ' GDS';
@@ -280,8 +260,8 @@ function updateItemsDisplay() {
             var item = currentItems[i];
             var typeText = item.ticketType === 'simple' ? '2ch' : (item.ticketType === 'three' ? '3ch' : '5ch');
             html += '<div class="item-row">' +
-                '<span><strong>' + item.number + '</strong> (' + typeText + ')</span>' +
-                '<span>' + item.amount.toLocaleString() + ' GDS</span>' +
+                '<span class="item-number"><strong>' + item.number + '</strong> (' + typeText + ')</span>' +
+                '<span class="item-amount">' + item.amount.toLocaleString() + ' GDS</span>' +
                 '<button class="remove-item" onclick="removeItem(' + i + ')"><i class="fas fa-times"></i></button>' +
             '</div>';
         }
@@ -327,7 +307,6 @@ function printTicket() {
                     var ticket = data.ticket;
                     alert('✅ Vente enregistrée ! Ticket: ' + ticket.id);
                     
-                    // Impression du ticket
                     var ticketText = generateTicketText(ticket, total, notes);
                     printThermal(ticketText);
                     
@@ -471,7 +450,7 @@ function displayTickets(tickets) {
     if (!container) return;
     
     if (tickets.length === 0) {
-        container.innerHTML = '<p>Aucun ticket</p>';
+        container.innerHTML = '<p class="empty-message">Aucun ticket</p>';
         return;
     }
     
@@ -480,17 +459,19 @@ function displayTickets(tickets) {
         var t = tickets[i];
         var isWinner = t.isWinner || t.is_winner;
         var isCancelled = t.isCancelled || t.is_cancelled;
+        var isFree = t.is_free_ticket === true;
         var winAmount = t.winAmount || t.win_amount || 0;
         
         var badge = '';
         if (isCancelled) badge = '<span class="cancelled-badge">ANNULÉ</span>';
         else if (isWinner) badge = '<span class="winner-badge">GAGNANT ' + winAmount + ' GDS</span>';
+        else if (isFree) badge = '<span class="free-badge">🎁 GRATUIT</span>';
         else badge = '<span class="pending-badge">En attente</span>';
         
         html += '<div class="ticket-item">';
-        html += '<div><strong>' + t.id + '</strong> ' + badge + '</div>';
-        html += '<div>Total: ' + (t.totalAmount || t.total_amount || 0) + ' GDS</div>';
-        html += '<div>Date: ' + new Date(t.date).toLocaleString() + '</div>';
+        html += '<div class="ticket-header"><strong>' + t.id + '</strong> ' + badge + '</div>';
+        html += '<div class="ticket-footer">Total: ' + (t.totalAmount || t.total_amount || 0) + ' GDS<br>';
+        html += 'Date: ' + new Date(t.date).toLocaleString() + '</div>';
         html += '</div>';
     }
     container.innerHTML = html;
@@ -502,8 +483,8 @@ function showTicketTab(tab) {
     for (var i = 0; i < btns.length; i++) {
         btns[i].classList.remove('active');
     }
-    if (event && event.target) {
-        event.target.classList.add('active');
+    if (window.event && window.event.target) {
+        window.event.target.classList.add('active');
     }
     loadTickets();
 }
@@ -545,7 +526,6 @@ function makeDeposit() {
         return;
     }
     
-    // D'abord trouver l'agent
     var xhr = new XMLHttpRequest();
     var url = API_BASE_URL + '/api/agents';
     xhr.open('GET', url, true);
@@ -610,7 +590,7 @@ function loadPaymentPointsForTransfer() {
                 var selectFrom = document.getElementById('transferFrom');
                 var selectTo = document.getElementById('transferTo');
                 if (selectFrom && selectTo && data.paymentPoints) {
-                    var options = '';
+                    var options = '<option value="">Sélectionner</option>';
                     for (var i = 0; i < data.paymentPoints.length; i++) {
                         var p = data.paymentPoints[i];
                         if (p.isActive) {
