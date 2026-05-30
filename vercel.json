@@ -12,34 +12,6 @@
       "dest": "server.js"
     },
     {
-      "src": "/agent-app/(.*)",
-      "dest": "/agent-app/$1"
-    },
-    {
-      "src": "/admin-app/(.*)",
-      "dest": "/admin-app/$1"
-    },
-    {
-      "src": "/caissier-app/(.*)",
-      "dest": "/caissier-app/$1"
-    },
-    {
-      "src": "/app-unique/(.*)",
-      "dest": "/app-unique/$1"
-    },
-    {
-      "src": "/icon/(.*)",
-      "dest": "/icon/$1"
-    },
-    {
-      "src": "/manifest.json",
-      "dest": "/manifest.json"
-    },
-    {
-      "src": "/sw.js",
-      "dest": "/sw.js"
-    },
-    {
       "handle": "filesystem"
     },
     {
