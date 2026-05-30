@@ -4,6 +4,11 @@ const fs = require('fs');
 const path = require('path');
 const supabase = require('./supabase-client');
 
+// Vérification au démarrage
+console.log('🚀 Serveur en cours de démarrage...');
+console.log('Node version:', process.version);
+console.log('Environnement:', process.env.NODE_ENV || 'development');
+
 // Fonction pour servir les fichiers statiques
 function serveStaticFile(filePath, res, contentType = 'text/html') {
     try {
