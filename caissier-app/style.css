@@ -1,5 +1,4 @@
-/* caissier-app/style.css */
-
+/* ========== STYLES DE BASE ========== */
 * {
     margin: 0;
     padding: 0;
@@ -372,70 +371,16 @@ body {
     margin-top: 5px;
 }
 
-.transaction-item .positive {
+.positive {
     color: #28a745;
+    font-weight: bold;
 }
 
-.transaction-item .negative {
+.negative {
     color: #dc3545;
+    font-weight: bold;
 }
 
-/* ========== RESPONSIVE ========== */
-@media (max-width: 768px) {
-    .app-page {
-        padding: 10px;
-    }
-    
-    .stats-bar {
-        grid-template-columns: 1fr;
-    }
-    
-    .form-row {
-        flex-direction: column;
-    }
-    
-    .form-row .form-group {
-        margin-bottom: 10px;
-    }
-    
-    .header {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .user-info {
-        flex-direction: column;
-        align-items: center;
-    }
-    
-    .login-box {
-        width: 90%;
-        padding: 20px;
-    }
-}
-
-/* ========== ANIMATIONS ========== */
-@keyframes slideIn {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
-@keyframes slideOut {
-    from {
-        transform: translateX(0);
-        opacity: 1;
-    }
-    to {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-}
 /* ========== RAPPORT DU JOUR ========== */
 .report-grid {
     display: flex;
@@ -512,8 +457,128 @@ body {
     transform: translateY(-2px);
 }
 
+/* ========== BADGES ========== */
+.winner-badge {
+    background: #28a745;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.cancelled-badge {
+    background: #dc3545;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.pending-badge {
+    background: #6c757d;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.free-badge {
+    background: #ffc107;
+    color: #333;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
+    .app-page {
+        padding: 10px;
+    }
+    
+    .stats-bar {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .form-row .form-group {
+        margin-bottom: 10px;
+    }
+    
+    .header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .user-info {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .login-box {
+        width: 90%;
+        padding: 20px;
+    }
+    
     .report-buttons {
         flex-direction: column;
+    }
+}
+
+@media (max-width: 480px) {
+    .stat-value {
+        font-size: 16px;
+    }
+    
+    .card h3 {
+        font-size: 14px;
+    }
+    
+    .print-report-btn, .export-report-btn {
+        font-size: 12px;
+        padding: 8px;
+    }
+}
+
+/* ========== ANIMATIONS ========== */
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
     }
 }

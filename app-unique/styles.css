@@ -532,23 +532,56 @@ body {
     color: #666;
 }
 
-/* Badges */
-.winner-badge, .cancelled-badge, .pending-badge, .free-badge {
+/* ========== BADGES ========== */
+.winner-badge {
+    background: #28a745;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: bold;
     display: inline-flex;
     align-items: center;
     gap: 4px;
+}
+
+.cancelled-badge {
+    background: #dc3545;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.pending-badge {
+    background: #6c757d;
+    color: white;
     padding: 3px 8px;
     border-radius: 20px;
     font-size: 10px;
     font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 
-.winner-badge { background: #28a745; color: white; }
-.cancelled-badge { background: #dc3545; color: white; }
-.pending-badge { background: #6c757d; color: white; }
-.free-badge { background: #ffc107; color: #333; }
+.free-badge {
+    background: #ffc107;
+    color: #333;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
 
-/* RAPPORT */
+/* ========== RAPPORT ========== */
 .rapport-stats {
     background: #f8f9fa;
     border-radius: 12px;
@@ -580,7 +613,7 @@ body {
     
     .main-content {
         margin-left: 0 !important;
-        width: 100%;
+        width: 100% !important;
         padding: 70px 15px 15px 15px;
     }
     
@@ -621,6 +654,22 @@ body {
     .stats-grid {
         grid-template-columns: 1fr;
         gap: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .stat-value {
+        font-size: 18px;
+    }
+    
+    .btn-primary {
+        font-size: 13px;
+        padding: 10px;
+    }
+    
+    .nav-btn {
+        padding: 8px 10px;
+        font-size: 12px;
     }
 }
 

@@ -200,6 +200,30 @@ body {
     gap: 10px;
 }
 
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.dark-mode-btn {
+    background: #f0f0f0;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dark-mode-btn:hover {
+    transform: scale(1.05);
+}
+
 /* ========== CARTES ========== */
 .card {
     background: white;
@@ -356,6 +380,21 @@ tr:hover {
     box-shadow: 0 3px 10px rgba(255,107,107,0.3);
 }
 
+.btn-export {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+.btn-export:hover {
+    background: #218838;
+}
+
 /* ========== FILTRES ========== */
 .filters {
     display: flex;
@@ -376,19 +415,41 @@ tr:hover {
 }
 
 /* ========== BADGES ========== */
-.winner-badge, .cancelled-badge, .pending-badge {
+.winner-badge {
+    background: #28a745;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: bold;
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: 3px 8px;
-    border-radius: 20px;
-    font-size: 10px;
-    font-weight: bold;
 }
 
-.winner-badge { background: #28a745; color: white; }
-.cancelled-badge { background: #dc3545; color: white; }
-.pending-badge { background: #6c757d; color: white; }
+.cancelled-badge {
+    background: #dc3545;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.pending-badge {
+    background: #6c757d;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
 
 .agent-blocked { 
     background: #dc3545; 
@@ -398,6 +459,7 @@ tr:hover {
     font-size: 11px; 
     display: inline-block;
 }
+
 .agent-active { 
     background: #28a745; 
     color: white; 
@@ -415,8 +477,24 @@ tr:hover {
     color: white;
     font-size: 12px;
 }
+
 .block-btn { background: #dc3545; }
 .unblock-btn { background: #28a745; }
+
+.positive {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.negative {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.commission-value {
+    color: #28a745;
+    font-weight: bold;
+}
 
 /* ========== TICKETS ========== */
 .ticket-item {
@@ -426,10 +504,12 @@ tr:hover {
     border-radius: 8px;
     border-left: 4px solid #ff6b6b;
 }
+
 .ticket-item.winner { 
     border-left-color: #28a745; 
     background: #e8f5e9; 
 }
+
 .ticket-item.cancelled { 
     border-left-color: #dc3545; 
     background: #fff5f5; 
@@ -454,6 +534,7 @@ tr:hover {
     border-radius: 8px;
     border-left: 4px solid #ff6b6b;
 }
+
 .transaction-header {
     display: flex;
     justify-content: space-between;
@@ -461,16 +542,24 @@ tr:hover {
     flex-wrap: wrap;
     gap: 5px;
 }
+
 .transaction-type { 
     font-weight: bold; 
     font-size: 12px; 
 }
+
 .transaction-date { 
     font-size: 11px; 
     color: #666; 
 }
+
 .transaction-details { 
     font-size: 13px; 
+}
+
+.transactions-list {
+    max-height: 400px;
+    overflow-y: auto;
 }
 
 /* ========== LIMITES ========== */
@@ -481,10 +570,12 @@ tr:hover {
     border-radius: 10px;
     border: 1px solid #e0e0e0;
 }
+
 .limit-card h4 { 
     margin-bottom: 10px; 
     color: #1e3c72; 
 }
+
 .limit-card textarea { 
     width: 100%; 
     padding: 8px; 
@@ -494,6 +585,7 @@ tr:hover {
     font-family: monospace;
     background: white;
 }
+
 .limit-card button {
     background: #ff6b6b;
     color: white;
@@ -558,7 +650,7 @@ tr:hover {
     
     .main-content {
         margin-left: 0 !important;
-        width: 100%;
+        width: 100% !important;
         padding: 70px 15px 15px 15px;
     }
     
@@ -679,31 +771,6 @@ tr:hover {
     }
 }
 
-/* ========== BOUTON MODE SOMBRE ========== */
-.header-actions {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.dark-mode-btn {
-    background: #f0f0f0;
-    border: none;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 18px;
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.dark-mode-btn:hover {
-    transform: scale(1.05);
-}
-
 /* ========== MODE SOMBRE ========== */
 body.dark-mode {
     background: #1a1a2e;
@@ -714,7 +781,9 @@ body.dark-mode .header,
 body.dark-mode .ticket-item,
 body.dark-mode .transaction-item,
 body.dark-mode .limit-card,
-body.dark-mode .petty-cash-item {
+body.dark-mode .petty-cash-item,
+body.dark-mode .rapport-stats,
+body.dark-mode .totals-bar {
     background: #16213e;
     color: #e0e0e0;
     border-color: #2a2a3e;
@@ -787,20 +856,23 @@ body.dark-mode .petty-cash-item.transfer {
     background: #1a2a3a;
 }
 
-/* ========== BOUTON EXPORT PDF ========== */
-.btn-export {
-    background: #28a745;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 5px;
-    font-size: 12px;
-    cursor: pointer;
-    margin-left: 10px;
+body.dark-mode .tab-btn.active {
+    background: #ff6b6b;
 }
 
-.btn-export:hover {
-    background: #218838;
+body.dark-mode .sub-tab-btn {
+    background: #2a2a4e;
+    color: #e0e0e0;
+}
+
+body.dark-mode .sub-tab-btn.active {
+    background: #ff6b6b;
+    color: white;
+}
+
+body.dark-mode .total-item {
+    background: #1a1a2e;
+    color: #e0e0e0;
 }
 
 /* ========== PETITE CAISSE ========== */
@@ -843,42 +915,71 @@ body.dark-mode .petty-cash-item.transfer {
     background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
 }
 
-.transactions-list {
-    max-height: 400px;
-    overflow-y: auto;
+/* ========== ONGLETS TRANSACTIONS ========== */
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 10px;
 }
 
-/* ========== CORRECTIONS SUPPLÉMENTAIRES ========== */
-.stat-box {
-    background: white;
-    padding: 15px;
-    border-radius: 12px;
-    text-align: center;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+.tab-btn {
+    padding: 10px 20px;
+    background: none;
+    border: none;
+    border-radius: 8px 8px 0 0;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: all 0.3s;
 }
 
-.stat-label {
+.sub-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.sub-tab-btn {
+    padding: 6px 12px;
+    background: #f0f2f5;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
     font-size: 12px;
-    color: #666;
-    margin-bottom: 5px;
+    transition: all 0.3s;
 }
 
-.history-item {
+.sub-tab-btn.active {
+    background: #ff6b6b;
+    color: white;
+}
+
+.tab-content {
+    transition: all 0.3s;
+}
+
+/* Barre des totaux */
+.totals-bar {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
     background: #f8f9fa;
     padding: 10px;
-    margin: 8px 0;
     border-radius: 8px;
-    border-left: 3px solid #ff6b6b;
 }
 
-.data-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.commission-value {
-    color: #28a745;
+.total-item {
+    flex: 1;
+    text-align: center;
+    padding: 8px;
+    background: white;
+    border-radius: 6px;
     font-weight: bold;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 /* ========== STYLES POUR LA GESTION DES PINS ========== */
@@ -958,7 +1059,7 @@ body.dark-mode .petty-cash-item.transfer {
     text-align: center;
 }
 
-/* ========== STYLES POUR LES APPAREILS (BLOCAGE/DÉBLOCAGE) ========== */
+/* ========== STYLES POUR LES APPAREILS ========== */
 .block-device-btn {
     background-color: #dc3545;
     color: white;
@@ -987,23 +1088,6 @@ body.dark-mode .petty-cash-item.transfer {
 
 .unblock-device-btn:hover {
     background-color: #218838;
-}
-
-/* ========== MODE SOMBRE POUR LES APPAREILS ========== */
-body.dark-mode .block-device-btn {
-    background-color: #dc3545;
-}
-
-body.dark-mode .block-device-btn:hover {
-    background-color: #bd2130;
-}
-
-body.dark-mode .unblock-device-btn {
-    background-color: #28a745;
-}
-
-body.dark-mode .unblock-device-btn:hover {
-    background-color: #1e7e34;
 }
 
 /* ========== STYLES POUR LES TOASTS ========== */
@@ -1042,97 +1126,31 @@ body.dark-mode .unblock-device-btn:hover {
     from { transform: translateX(0); opacity: 1; }
     to { transform: translateX(100%); opacity: 0; }
 }
-/* ========== ONGLETS TRANSACTIONS ========== */
-.tabs {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    border-bottom: 2px solid #e0e0e0;
-    padding-bottom: 10px;
+
+/* ========== CORRECTIONS SUPPLÉMENTAIRES ========== */
+.stat-box {
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 
-.tab-btn {
-    padding: 10px 20px;
-    background: none;
-    border: none;
-    border-radius: 8px 8px 0 0;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: bold;
-    transition: all 0.3s;
-}
-
-.tab-btn.active {
-    background: #1e3c72;
-    color: white;
-}
-
-.sub-tabs {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 15px;
-    flex-wrap: wrap;
-}
-
-.sub-tab-btn {
-    padding: 6px 12px;
-    background: #f0f2f5;
-    border: none;
-    border-radius: 20px;
-    cursor: pointer;
+.stat-label {
     font-size: 12px;
-    transition: all 0.3s;
+    color: #666;
+    margin-bottom: 5px;
 }
 
-.sub-tab-btn.active {
-    background: #ff6b6b;
-    color: white;
-}
-
-.tab-content {
-    transition: all 0.3s;
-}
-
-/* Mode sombre */
-body.dark-mode .tab-btn.active {
-    background: #ff6b6b;
-}
-
-body.dark-mode .sub-tab-btn {
-    background: #2a2a4e;
-    color: #e0e0e0;
-}
-
-body.dark-mode .sub-tab-btn.active {
-    background: #ff6b6b;
-    color: white;
-}
-/* Barre des totaux */
-.totals-bar {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 15px;
-    flex-wrap: wrap;
+.history-item {
     background: #f8f9fa;
     padding: 10px;
+    margin: 8px 0;
     border-radius: 8px;
+    border-left: 3px solid #ff6b6b;
 }
 
-.total-item {
-    flex: 1;
-    text-align: center;
-    padding: 8px;
-    background: white;
-    border-radius: 6px;
-    font-weight: bold;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-body.dark-mode .totals-bar {
-    background: #2a2a4e;
-}
-
-body.dark-mode .total-item {
-    background: #1a1a2e;
-    color: #e0e0e0;
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
 }
