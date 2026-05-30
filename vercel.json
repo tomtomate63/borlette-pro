@@ -13,19 +13,38 @@
     },
     {
       "src": "/agent-app/(.*)",
-      "dest": "server.js"
+      "dest": "/agent-app/$1"
     },
     {
       "src": "/admin-app/(.*)",
-      "dest": "server.js"
+      "dest": "/admin-app/$1"
+    },
+    {
+      "src": "/caissier-app/(.*)",
+      "dest": "/caissier-app/$1"
+    },
+    {
+      "src": "/app-unique/(.*)",
+      "dest": "/app-unique/$1"
     },
     {
       "src": "/icon/(.*)",
-      "dest": "server.js"
+      "dest": "/icon/$1"
+    },
+    {
+      "src": "/manifest.json",
+      "dest": "/manifest.json"
+    },
+    {
+      "src": "/sw.js",
+      "dest": "/sw.js"
+    },
+    {
+      "handle": "filesystem"
     },
     {
       "src": "/(.*)",
-      "dest": "server.js"
+      "dest": "/app-unique/index.html"
     }
   ]
 }
