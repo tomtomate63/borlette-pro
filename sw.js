@@ -12,9 +12,6 @@ const urlsToCache = [
   '/caissier-app/index.html',
   '/caissier-app/style.css',
   '/caissier-app/script.js',
-  '/app-unique/index.html',
-  '/app-unique/style.css',
-  '/app-unique/script.js',
   '/icon/icon-100.png'
 ];
 
