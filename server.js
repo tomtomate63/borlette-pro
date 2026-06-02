@@ -4,11 +4,6 @@ const fs = require('fs');
 const path = require('path');
 const supabase = require('./supabase-client');
 
-// Vérification au démarrage
-console.log('🚀 Serveur en cours de démarrage...');
-console.log('Node version:', process.version);
-console.log('Environnement:', process.env.NODE_ENV || 'development');
-
 // Fonction pour servir les fichiers statiques
 function serveStaticFile(filePath, res, contentType = 'text/html') {
     try {
@@ -116,8 +111,7 @@ const server = http.createServer(async (req, res) => {
         serveStaticFile(filePath, res, contentType);
         return;
     }
- 
-
+    
     if (url === '/manifest.json') {
         let filePath = path.join(__dirname, 'manifest.json');
         serveStaticFile(filePath, res, 'application/json');
@@ -139,11 +133,11 @@ const server = http.createServer(async (req, res) => {
         return;
     }
     
-  if (url === '/') {
-    let filePath = path.join(__dirname, 'agent-app', 'index.html');
-    serveStaticFile(filePath, res, 'text/html');
-    return;
-}
+    if (url === '/') {
+        res.writeHead(302, { 'Location': '/agent-app/index.html' });
+        res.end();
+        return;
+    }
     
     // Helper pour parser le body
     const parseBody = () => {
