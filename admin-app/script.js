@@ -24,15 +24,17 @@ async function adminLogin() {
         const data = await response.json();
         
         if (data.success) {
-            const isAdminUser = data.user.isAdmin === true || 
-                                data.user.is_admin === true || 
-                                data.user.username === 'admin' ||
-                                data.user.type === 'admin';
-            
-            if (!isAdminUser) {
-                showLoginError('Accès non autorisé - Compte non administrateur');
-                return;
-            }
+    // Vérifier si c'est un admin (via l'ancien système OU via les permissions)
+    const isAdminUser = data.user.isAdmin === true || 
+                        data.user.is_admin === true || 
+                        data.user.username === 'admin' ||
+                        data.user.type === 'admin' ||
+                        (data.user.permissions && data.user.permissions.can_manage_users === true);
+    
+    if (!isAdminUser) {
+        showLoginError('Accès non autorisé - Compte non administrateur');
+        return;
+    }
             
             currentAdmin = data.user;
             document.getElementById('adminInfo').innerHTML = `<i class="fas fa-user-shield"></i> ${currentAdmin.name || currentAdmin.username}`;
