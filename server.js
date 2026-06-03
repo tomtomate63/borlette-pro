@@ -269,6 +269,17 @@ const server = http.createServer(async (req, res) => {
         if (user) {
             const isAdmin = user.is_admin === true || user.username === 'admin' || user.type === 'admin';
             
+            const permissions = user.permissions || {
+            can_manage_users: false,
+            can_view_zone_reports: false,
+            can_view_point_tickets: false,
+            can_make_deposit: false,
+            can_pay_tickets: false,
+            can_transfer: false,
+            can_sell_tickets: false,
+            can_free_ticket: false
+        };
+
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ 
                 success: true, 
@@ -727,57 +738,69 @@ const server = http.createServer(async (req, res) => {
     }
     
     // CRÉER AGENT
-    if (url === '/api/create-agent' && req.method === 'POST') {
-        const body = await parseBody();
-        
-        const { data: existing, error: existingError } = await supabase
-            .from('agents')
-            .select('id')
-            .eq('username', body.username);
-        
-        if (existing && existing.length > 0) {
-            res.writeHead(400, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ success: false, message: 'Nom d\'utilisateur déjà existant' }));
-            return;
-        }
-        
-        const newAgent = {
-            username: body.username,
-            password: body.password || '1234',
-            prenom: body.prenom,
-            nom: body.nom,
-            agent_name: body.agentName || `${body.prenom} ${body.nom}`,
-            zone: body.zone,
-            is_blocked: false,
-            total_sales: 0,
-            balance: 0,
-            commission: 0,
-            commission_rate: 0.05,
-            date_naissance: body.dateNaissance,
-            carte_identite: body.carteIdentite,
-            matricule_fiscale: body.matriculeFiscale,
-            permis: body.permis,
-            date_inscription: new Date().toISOString(),
-            type: 'vendeur',
-            is_admin: false
-        };
-        
-        let { data: agent, error } = await supabase
-            .from('agents')
-            .insert([newAgent])
-            .select()
-            .single();
-        
-        if (error) {
-            res.writeHead(500, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ success: false, message: error.message }));
-            return;
-        }
-        
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: true, agent }));
+   // CRÉER AGENT
+if (url === '/api/create-agent' && req.method === 'POST') {
+    const body = await parseBody();
+    
+    const { data: existing, error: existingError } = await supabase
+        .from('agents')
+        .select('id')
+        .eq('username', body.username);
+    
+    if (existing && existing.length > 0) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, message: 'Nom d\'utilisateur déjà existant' }));
         return;
     }
+    
+    const newAgent = {
+        username: body.username,
+        password: body.password || '1234',
+        prenom: body.prenom,
+        nom: body.nom,
+        agent_name: body.agentName || `${body.prenom} ${body.nom}`,
+        zone: body.zone,
+        is_blocked: false,
+        total_sales: 0,
+        balance: 0,
+        commission: 0,
+        commission_rate: 0.05,
+        date_naissance: body.dateNaissance,
+        carte_identite: body.carteIdentite,
+        matricule_fiscale: body.matriculeFiscale,
+        permis: body.permis,
+        date_inscription: new Date().toISOString(),
+        type: 'vendeur',
+        is_admin: false,
+        // 👇 AJOUTER LES PERMISSIONS 👇
+        permissions: body.permissions || {
+            can_manage_users: false,
+            can_view_zone_reports: false,
+            can_view_point_tickets: false,
+            can_make_deposit: false,
+            can_pay_tickets: false,
+            can_transfer: false,
+            can_sell_tickets: true,
+            can_free_ticket: true
+        }
+    };
+    
+    let { data: agent, error } = await supabase
+        .from('agents')
+        .insert([newAgent])
+        .select()
+        .single();
+    
+    if (error) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, message: error.message }));
+        return;
+    }
+    
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ success: true, agent }));
+    return;
+}
     
     // BLOQUER/DEBLOQUER AGENT
     if (url === '/api/toggle-agent-block' && req.method === 'PUT') {

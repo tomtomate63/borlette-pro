@@ -787,7 +787,18 @@ async function createAgent() {
         dateNaissance: document.getElementById('newDateNaissance').value,
         carteIdentite: document.getElementById('newCarteIdentite').value.trim(),
         matriculeFiscale: document.getElementById('newMatriculeFiscale').value.trim(),
-        permis: document.getElementById('newPermis').value.trim()
+        permis: document.getElementById('newPermis').value.trim(),
+        // 👇 AJOUTER LES PERMISSIONS 👇
+        permissions: {
+            can_manage_users: document.getElementById('permManageUsers').checked,
+            can_view_zone_reports: document.getElementById('permViewZoneReports').checked,
+            can_view_point_tickets: document.getElementById('permViewPointTickets').checked,
+            can_make_deposit: document.getElementById('permMakeDeposit').checked,
+            can_pay_tickets: document.getElementById('permPayTickets').checked,
+            can_transfer: document.getElementById('permTransfer').checked,
+            can_sell_tickets: document.getElementById('permSellTickets').checked,
+            can_free_ticket: document.getElementById('permFreeTicket').checked
+        }
     };
     
     if (!agentData.username || !agentData.prenom || !agentData.nom) {
@@ -806,6 +817,7 @@ async function createAgent() {
         
         if (data.success) {
             showToast('✅ Vendeur créé avec succès !', 'success');
+            // Réinitialiser le formulaire
             document.getElementById('newUsername').value = '';
             document.getElementById('newPassword').value = '1234';
             document.getElementById('newPrenom').value = '';
@@ -815,6 +827,15 @@ async function createAgent() {
             document.getElementById('newCarteIdentite').value = '';
             document.getElementById('newMatriculeFiscale').value = '';
             document.getElementById('newPermis').value = '';
+            // 👇 Réinitialiser les cases à cocher 👇
+            document.getElementById('permManageUsers').checked = false;
+            document.getElementById('permViewZoneReports').checked = false;
+            document.getElementById('permViewPointTickets').checked = false;
+            document.getElementById('permMakeDeposit').checked = false;
+            document.getElementById('permPayTickets').checked = false;
+            document.getElementById('permTransfer').checked = false;
+            document.getElementById('permSellTickets').checked = true;  // Par défaut pour un vendeur
+            document.getElementById('permFreeTicket').checked = true;   // Par défaut pour un vendeur
             loadUsers();
         } else {
             showToast(data.message || '❌ Erreur lors de la création', 'error');
