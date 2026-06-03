@@ -37,18 +37,17 @@ async function adminLogin() {
     }
             
             currentAdmin = data.user;
-            document.getElementById('adminInfo').innerHTML = `<i class="fas fa-user-shield"></i> ${currentAdmin.name || currentAdmin.username}`;
-            document.getElementById('loginPage').style.display = 'none';
-            document.getElementById('adminPage').style.display = 'flex';
-            
-            await loadAllData();
-            
-            showSection('dashboard', null);
-        } else {
-            showLoginError('Accès non autorisé - Identifiants admin requis');
-        }
+    document.getElementById('adminInfo').innerHTML = `<i class="fas fa-user-shield"></i> ${currentAdmin.name || currentAdmin.username}`;
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('adminPage').style.display = 'flex';
+    
+    await loadAllData();
+    showSection('dashboard', null);
+} else {
+    showLoginError('Identifiants incorrects');
+}
     } catch (error) {
-        console.error('Erreur connexion:', error);
+        console.error('Erreur de connexion:', error);
         showLoginError('Erreur de connexion au serveur');
     }
 }
