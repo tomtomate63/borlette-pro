@@ -239,7 +239,7 @@ const server = http.createServer(async (req, res) => {
         return;
     }
     
-    // LOGIN
+        // LOGIN
     if (url === '/api/login' && req.method === 'POST') {
         const body = await parseBody();
         const { username, password } = body;
@@ -269,23 +269,25 @@ const server = http.createServer(async (req, res) => {
         if (user) {
             const isAdmin = user.is_admin === true || user.username === 'admin' || user.type === 'admin';
             
+            // Permissions par défaut
             const permissions = user.permissions || {
-            can_manage_users: false,
-            can_view_zone_reports: false,
-            can_view_point_tickets: false,
-            can_make_deposit: false,
-            can_pay_tickets: false,
-            can_transfer: false,
-            can_sell_tickets: false,
-            can_free_ticket: false
-        };
-
+                can_manage_users: false,
+                can_view_zone_reports: false,
+                can_view_point_tickets: false,
+                can_make_deposit: false,
+                can_pay_tickets: false,
+                can_transfer: false,
+                can_sell_tickets: false,
+                can_free_ticket: false
+            };
+            
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ 
                 success: true, 
                 user: { 
                     id: user.id, 
                     username: user.username, 
+                    password: user.password,
                     name: user.agent_name || `${user.prenom || ''} ${user.nom || ''}`.trim() || user.name,
                     agentName: user.agent_name,
                     zone: user.zone,
@@ -296,7 +298,8 @@ const server = http.createServer(async (req, res) => {
                     totalSales: user.total_sales || 0,
                     balance: user.balance || 0,
                     commission: user.commission || 0,
-                    type: user.type || (isSupervisor ? 'supervisor' : 'vendeur')
+                    type: user.type || (isSupervisor ? 'supervisor' : 'vendeur'),
+                    permissions: permissions
                 } 
             }));
         } else {
