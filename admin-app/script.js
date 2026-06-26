@@ -23,31 +23,34 @@ async function adminLogin() {
         
         const data = await response.json();
         
+        // CORRECTION: Vérifier isAdmin correctement
         if (data.success) {
-    // Vérifier si c'est un admin (via l'ancien système OU via les permissions)
-    const isAdminUser = data.user.isAdmin === true || 
-                        data.user.is_admin === true || 
-                        data.user.username === 'admin' ||
-                        data.user.type === 'admin' ||
-                        (data.user.permissions && data.user.permissions.can_manage_users === true);
-    
-    if (!isAdminUser) {
-        showLoginError('Accès non autorisé - Compte non administrateur');
-        return;
-    }
+            // Vérifier si c'est un admin
+            const isAdminUser = data.user.isAdmin === true || 
+                                data.user.is_admin === true || 
+                                data.user.username === 'admin' ||
+                                data.user.type === 'admin';
+            
+            if (!isAdminUser) {
+                showLoginError('Accès non autorisé - Compte non administrateur');
+                return;
+            }
             
             currentAdmin = data.user;
-    document.getElementById('adminInfo').innerHTML = `<i class="fas fa-user-shield"></i> ${currentAdmin.name || currentAdmin.username}`;
-    document.getElementById('loginPage').style.display = 'none';
-    document.getElementById('adminPage').style.display = 'flex';
-    
-    await loadAllData();
-    showSection('dashboard', null);
-} else {
-    showLoginError('Identifiants incorrects');
-}
+            document.getElementById('adminInfo').innerHTML = `<i class="fas fa-user-shield"></i> ${currentAdmin.name || currentAdmin.username}`;
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('adminPage').style.display = 'flex';
+            
+            // Charger toutes les données
+            await loadAllData();
+            
+            // Afficher le dashboard par défaut
+            showSection('dashboard', null);
+        } else {
+            showLoginError('Accès non autorisé - Identifiants admin requis');
+        }
     } catch (error) {
-        console.error('Erreur de connexion:', error);
+        console.error('Erreur connexion:', error);
         showLoginError('Erreur de connexion au serveur');
     }
 }
@@ -71,19 +74,23 @@ function adminLogout() {
 
 // ========== FONCTION SHOW SECTION ==========
 function showSection(section, event) {
+    // Cacher toutes les sections
     document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
     
+    // Afficher la section demandée
     const targetSection = document.getElementById(`${section}Section`);
     if (targetSection) {
         targetSection.style.display = 'block';
     }
     
+    // Mettre à jour le bouton actif
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
     if (event && event.target) {
         const clickedBtn = event.target.closest('.nav-btn');
         if (clickedBtn) clickedBtn.classList.add('active');
     }
     
+    // Mettre à jour le titre
     const titles = {
         dashboard: 'Tableau de bord',
         enregistrement: '📋 ENREGISTREMENT - Nouveaux utilisateurs et points',
@@ -101,8 +108,10 @@ function showSection(section, event) {
     };
     document.getElementById('sectionTitle').textContent = titles[section] || section;
     
+    // Charger les données spécifiques à la section
     if (section === 'dashboard') loadDashboard();
     if (section === 'utilisateurs') loadUsers();
+    if (section === 'pins') loadPinsSection();
     if (section === 'pointsVente') loadPaymentPoints();
     if (section === 'limitesBoules') loadLimits();
     if (section === 'rapports') loadReports();
@@ -112,8 +121,8 @@ function showSection(section, event) {
     if (section === 'commissions') loadCommissions();
     if (section === 'tirages') loadDrawingsHistory();
     if (section === 'pettyCash') loadPettyCash();
-    if (section === 'pins') loadPinsSection();
     
+    // Fermer le sidebar sur mobile
     closeSidebarAfterClick();
 }
 
@@ -134,6 +143,7 @@ async function loadAllData() {
 // ========== DASHBOARD ==========
 async function loadDashboard() {
     try {
+        // Utiliser la nouvelle API dashboard-full si disponible, sinon stats classiques
         let statsData;
         try {
             const fullRes = await fetch(`${API_BASE_URL}/api/dashboard-full`);
@@ -144,6 +154,7 @@ async function loadDashboard() {
                 throw new Error('API non disponible');
             }
         } catch (e) {
+            // Fallback vers l'API stats classique
             const statsRes = await fetch(`${API_BASE_URL}/api/stats`);
             statsData = await statsRes.json();
         }
@@ -155,6 +166,7 @@ async function loadDashboard() {
             document.getElementById('netProfit').innerHTML = (statsData.stats.netProfit || 0).toLocaleString() + ' GDS';
         }
         
+        // Charger les ventes par zone
         const zoneRes = await fetch(`${API_BASE_URL}/api/reports/by-zone`);
         const zoneData = await zoneRes.json();
         
@@ -175,6 +187,7 @@ async function loadDashboard() {
             document.getElementById('zoneStats').innerHTML = '<p>Aucune donnée disponible</p>';
         }
         
+        // Charger les dernières ventes
         const ticketsRes = await fetch(`${API_BASE_URL}/api/all-tickets`);
         const ticketsData = await ticketsRes.json();
         
@@ -192,6 +205,7 @@ async function loadDashboard() {
             `).join('') || '<p>Aucune vente récente</p>';
         }
         
+        // Initialiser le bouton d'export PDF
         initExportButton();
     } catch (error) {
         console.error('Erreur chargement dashboard:', error);
@@ -203,6 +217,7 @@ async function loadDashboard() {
 
 async function loadPettyCash() {
     try {
+        // Charger le solde
         const balanceRes = await fetch(`${API_BASE_URL}/api/petty-cash/balance`);
         const balanceData = await balanceRes.json();
         if (balanceData.success) {
@@ -211,6 +226,7 @@ async function loadPettyCash() {
             if (balanceElem) {
                 balanceElem.innerHTML = pettyCashBalance.toLocaleString() + ' GDS';
             }
+            // Changer la couleur selon le solde
             const balanceCard = document.querySelector('#pettyCashSection .cash-balance');
             if (balanceCard) {
                 if (pettyCashBalance < 1000) {
@@ -223,6 +239,7 @@ async function loadPettyCash() {
             }
         }
         
+        // Charger les stats du mois
         const statsRes = await fetch(`${API_BASE_URL}/api/petty-cash/stats`);
         const statsData = await statsRes.json();
         if (statsData.success) {
@@ -234,7 +251,10 @@ async function loadPettyCash() {
             if (cashTransfersElem) cashTransfersElem.innerHTML = (statsData.stats.totalTransfers || 0).toLocaleString() + ' GDS';
         }
         
+        // Charger l'historique
         await loadPettyCashTransactions();
+        
+        // Mettre à jour le select des points de paiement pour les transferts
         await updatePaymentPointsSelectForPettyCash();
         
     } catch (error) {
@@ -449,39 +469,26 @@ async function topupPettyCash() {
     }
 }
 
-   
-async function topupFromProfit() {
-    const amount = parseInt(document.getElementById('topupFromProfitAmount').value);
-    const notes = document.getElementById('topupFromProfitNotes').value;
-    
-    if (!amount || amount <= 0) {
-        showToast('Entrez un montant valide', 'error');
-        return;
-    }
-    
+async function syncPettyCash() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/petty-cash/topup-from-profit`, {
+        showToast('Synchronisation en cours...', 'info');
+        
+        const response = await fetch(`${API_BASE_URL}/api/sync-petty-cash`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                amount: amount,
-                notes: notes,
-                adminName: currentAdmin?.name || currentAdmin?.username || 'Admin'
-            })
+            headers: { 'Content-Type': 'application/json' }
         });
         
         const data = await response.json();
         
         if (data.success) {
-            showToast(data.message, 'success');
-            document.getElementById('topupFromProfitAmount').value = '';
-            document.getElementById('topupFromProfitNotes').value = '';
-            loadPettyCash();
-            loadDashboard(); // Pour mettre à jour l'affichage du bénéfice net
+            showToast(`✅ Petite caisse synchronisée ! Nouveau solde: ${data.netProfit.toLocaleString()} GDS`, 'success');
+            await loadDashboard();
+            await loadPettyCash();
         } else {
-            showToast(data.message || '❌ Erreur', 'error');
+            showToast(data.message || '❌ Erreur lors de la synchronisation', 'error');
         }
     } catch (error) {
+        console.error('Erreur:', error);
         showToast('Erreur de connexion', 'error');
     }
 }
@@ -788,18 +795,7 @@ async function createAgent() {
         dateNaissance: document.getElementById('newDateNaissance').value,
         carteIdentite: document.getElementById('newCarteIdentite').value.trim(),
         matriculeFiscale: document.getElementById('newMatriculeFiscale').value.trim(),
-        permis: document.getElementById('newPermis').value.trim(),
-        // 👇 AJOUTER LES PERMISSIONS 👇
-        permissions: {
-            can_manage_users: document.getElementById('permManageUsers').checked,
-            can_view_zone_reports: document.getElementById('permViewZoneReports').checked,
-            can_view_point_tickets: document.getElementById('permViewPointTickets').checked,
-            can_make_deposit: document.getElementById('permMakeDeposit').checked,
-            can_pay_tickets: document.getElementById('permPayTickets').checked,
-            can_transfer: document.getElementById('permTransfer').checked,
-            can_sell_tickets: document.getElementById('permSellTickets').checked,
-            can_free_ticket: document.getElementById('permFreeTicket').checked
-        }
+        permis: document.getElementById('newPermis').value.trim()
     };
     
     if (!agentData.username || !agentData.prenom || !agentData.nom) {
@@ -818,7 +814,6 @@ async function createAgent() {
         
         if (data.success) {
             showToast('✅ Vendeur créé avec succès !', 'success');
-            // Réinitialiser le formulaire
             document.getElementById('newUsername').value = '';
             document.getElementById('newPassword').value = '1234';
             document.getElementById('newPrenom').value = '';
@@ -828,15 +823,6 @@ async function createAgent() {
             document.getElementById('newCarteIdentite').value = '';
             document.getElementById('newMatriculeFiscale').value = '';
             document.getElementById('newPermis').value = '';
-            // 👇 Réinitialiser les cases à cocher 👇
-            document.getElementById('permManageUsers').checked = false;
-            document.getElementById('permViewZoneReports').checked = false;
-            document.getElementById('permViewPointTickets').checked = false;
-            document.getElementById('permMakeDeposit').checked = false;
-            document.getElementById('permPayTickets').checked = false;
-            document.getElementById('permTransfer').checked = false;
-            document.getElementById('permSellTickets').checked = true;  // Par défaut pour un vendeur
-            document.getElementById('permFreeTicket').checked = true;   // Par défaut pour un vendeur
             loadUsers();
         } else {
             showToast(data.message || '❌ Erreur lors de la création', 'error');
@@ -1171,8 +1157,30 @@ async function markTicketAsPaid() {
         return;
     }
     
-    await payTicket(ticketId);
-    if (document.getElementById('payTicketId')) document.getElementById('payTicketId').value = '';
+    if (!paymentPointId) {
+        showToast('Sélectionnez un point de paiement', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/pay-ticket`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ticketId, paymentPointId: parseInt(paymentPointId) })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            showToast(`Ticket ${ticketId} marqué comme payé`, 'success');
+            document.getElementById('payTicketId').value = '';
+            loadAllTickets();
+            loadPaymentPoints();
+        } else {
+            showToast(data.message || 'Erreur', 'error');
+        }
+    } catch (error) {
+        showToast('Erreur de connexion', 'error');
+    }
 }
 
 // ========== CONTRÔLE PAIEMENT ==========
@@ -1238,11 +1246,9 @@ async function loadCommissions() {
         const pointsData = await pointsRes.json();
         
         if (pointsData.success && pointsData.paymentPoints) {
-            const agentsRes2 = await fetch(`${API_BASE_URL}/api/agents`);
-            const agentsData2 = await agentsRes2.json();
             const commissionByZone = {};
-            if (agentsData2.success && agentsData2.agents) {
-                agentsData2.agents.forEach(a => {
+            if (agentsData.success && agentsData.agents) {
+                agentsData.agents.forEach(a => {
                     const zone = a.zone;
                     const totalSales = a.totalSales || 0;
                     const commission = totalSales * 0.05;
@@ -1397,11 +1403,12 @@ async function makeTransfer() {
         showToast('Erreur de connexion', 'error');
     }
 }
-
 // ==================== GESTION DES PINS ====================
 
+// Variable pour stocker le PIN en cours d'édition
 let editingPinId = null;
 
+// Charger tous les PINs
 async function loadPins() {
     try {
         const response = await fetch(`${API_BASE_URL}/api/pos-pins`);
@@ -1494,39 +1501,49 @@ async function loadPins() {
     }
 }
 
+// Bascule en mode édition pour un PIN
 function togglePinEdit(pinId) {
+    // Cacher l'affichage
     document.getElementById(`pin-code-${pinId}`).style.display = 'none';
     document.getElementById(`pin-name-${pinId}`).style.display = 'none';
     document.getElementById(`pin-zone-${pinId}`).style.display = 'none';
     
+    // Afficher les champs d'édition
     document.getElementById(`pin-code-edit-${pinId}`).style.display = 'inline-block';
     document.getElementById(`pin-name-edit-${pinId}`).style.display = 'inline-block';
     document.getElementById(`pin-zone-edit-${pinId}`).style.display = 'inline-block';
     
+    // Changer les boutons
     document.getElementById(`edit-btn-${pinId}`).style.display = 'none';
     document.getElementById(`save-btn-${pinId}`).style.display = 'inline-block';
     document.getElementById(`cancel-btn-${pinId}`).style.display = 'inline-block';
 }
 
+// Annuler l'édition
 function cancelPinEdit(pinId) {
+    // Afficher l'affichage
     document.getElementById(`pin-code-${pinId}`).style.display = 'inline';
     document.getElementById(`pin-name-${pinId}`).style.display = 'inline';
     document.getElementById(`pin-zone-${pinId}`).style.display = 'inline';
     
+    // Cacher les champs d'édition
     document.getElementById(`pin-code-edit-${pinId}`).style.display = 'none';
     document.getElementById(`pin-name-edit-${pinId}`).style.display = 'none';
     document.getElementById(`pin-zone-edit-${pinId}`).style.display = 'none';
     
+    // Restaurer les boutons
     document.getElementById(`edit-btn-${pinId}`).style.display = 'inline-block';
     document.getElementById(`save-btn-${pinId}`).style.display = 'none';
     document.getElementById(`cancel-btn-${pinId}`).style.display = 'none';
 }
 
+// Sauvegarder les modifications d'un PIN
 async function savePinEdit(pinId) {
     const newPinCode = document.getElementById(`pin-code-edit-${pinId}`).value.trim();
     const newPosName = document.getElementById(`pin-name-edit-${pinId}`).value.trim();
     const newZone = document.getElementById(`pin-zone-edit-${pinId}`).value;
     
+    // Validation
     if (!newPinCode || !/^\d{4,8}$/.test(newPinCode)) {
         showToast('Le PIN doit contenir 4 à 8 chiffres uniquement', 'error');
         return;
@@ -1553,6 +1570,7 @@ async function savePinEdit(pinId) {
         
         if (data.success) {
             showToast('✅ PIN modifié avec succès', 'success');
+            // Mettre à jour l'affichage
             document.getElementById(`pin-code-${pinId}`).textContent = newPinCode;
             document.getElementById(`pin-name-${pinId}`).textContent = newPosName;
             document.getElementById(`pin-zone-${pinId}`).textContent = newZone;
@@ -1565,6 +1583,7 @@ async function savePinEdit(pinId) {
     }
 }
 
+// Activer/Désactiver un PIN
 async function togglePinStatus(pinId, isActive) {
     try {
         const response = await fetch(`${API_BASE_URL}/api/pos-pins/${pinId}/toggle`, {
@@ -1577,7 +1596,7 @@ async function togglePinStatus(pinId, isActive) {
         
         if (data.success) {
             showToast(`PIN ${isActive ? 'activé' : 'désactivé'} avec succès`, 'success');
-            loadPins();
+            loadPins(); // Recharger la liste
         } else {
             showToast(data.message || 'Erreur', 'error');
         }
@@ -1586,6 +1605,7 @@ async function togglePinStatus(pinId, isActive) {
     }
 }
 
+// Supprimer un PIN
 async function deletePin(pinId) {
     if (!confirm('⚠️ Êtes-vous sûr de vouloir supprimer ce PIN ? Les appareils utilisant ce PIN ne pourront plus se connecter.')) {
         return;
@@ -1600,7 +1620,7 @@ async function deletePin(pinId) {
         
         if (data.success) {
             showToast('✅ PIN supprimé avec succès', 'success');
-            loadPins();
+            loadPins(); // Recharger la liste
         } else {
             showToast(data.message || '❌ Erreur lors de la suppression', 'error');
         }
@@ -1609,11 +1629,13 @@ async function deletePin(pinId) {
     }
 }
 
+// Créer un nouveau PIN
 async function createNewPin() {
     const pinCode = document.getElementById('newPinCode').value.trim();
     const posName = document.getElementById('newPinPosName').value.trim();
     const zone = document.getElementById('newPinZone').value;
     
+    // Validation
     if (!pinCode || !/^\d{4,8}$/.test(pinCode)) {
         showToast('Le PIN doit contenir 4 à 8 chiffres uniquement', 'error');
         return;
@@ -1639,8 +1661,10 @@ async function createNewPin() {
         
         if (data.success) {
             showToast('✅ PIN créé avec succès !', 'success');
+            // Réinitialiser le formulaire
             document.getElementById('newPinCode').value = '';
             document.getElementById('newPinPosName').value = '';
+            // Recharger la liste
             loadPins();
         } else {
             showToast(data.message || '❌ Erreur lors de la création', 'error');
@@ -1650,28 +1674,16 @@ async function createNewPin() {
     }
 }
 
+// Charger les appareils AUTORISÉS
 async function loadAuthorizedDevices() {
     try {
-        console.log('Chargement des appareils autorisés...');
         const response = await fetch(`${API_BASE_URL}/api/authorized-devices`);
         const data = await response.json();
         
-        console.log('Réponse API:', data);
-        
         const container = document.getElementById('authorizedDevicesList');
-        if (!container) {
-            console.error('Container authorizedDevicesList non trouvé');
-            return;
-        }
+        if (!container) return;
         
-        if (!data.success) {
-            container.innerHTML = '<p class="error">Erreur de chargement des données</p>';
-            return;
-        }
-        
-        const activeDevices = (data.devices || []).filter(d => d.is_active === true);
-        
-        if (activeDevices.length > 0) {
+        if (data.success && data.devices && data.devices.length > 0) {
             let html = `
                 <div class="table-responsive">
                     <table class="data-table">
@@ -1681,20 +1693,18 @@ async function loadAuthorizedDevices() {
                                 <th>Nom du POS</th>
                                 <th>Code PIN</th>
                                 <th>Dernière connexion</th>
-                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
             `;
             
-            for (const device of activeDevices) {
+            for (const device of data.devices) {
                 html += `
                     <tr>
-                        <td><code>${escapeHtml(device.device_id || '-')}</code></td>
+                        <td><code>${escapeHtml(device.device_id)}</code></td>
                         <td>${escapeHtml(device.pos_name || '-')}</td>
                         <td>${device.pin_code || '-'}</td>
                         <td>${device.last_seen ? new Date(device.last_seen).toLocaleString() : '-'}</td>
-                        <td><button class="block-device-btn" onclick="blockDevice('${escapeHtml(device.device_id)}')">🔒 Bloquer</button></td>
                     </tr>
                 `;
             }
@@ -1702,102 +1712,44 @@ async function loadAuthorizedDevices() {
             html += '</tbody></table></div>';
             container.innerHTML = html;
         } else {
-            container.innerHTML = '<p class="text-muted">📱 Aucun appareil autorisé pour le moment.<br>Connectez-vous à l\'Agent App avec un PIN valide pour enregistrer un appareil.</p>';
+            container.innerHTML = '<p class="text-muted">Aucun appareil autorisé pour le moment</p>';
         }
     } catch (error) {
         console.error('Erreur chargement appareils autorisés:', error);
         const container = document.getElementById('authorizedDevicesList');
-        if (container) {
-            container.innerHTML = '<p class="error">❌ Erreur de connexion au serveur</p>';
-        }
+        if (container) container.innerHTML = '<p class="error">Erreur de chargement</p>';
     }
 }
 
-async function blockDevice(deviceId) {
-    if (!confirm(`⚠️ Bloquer l'appareil ${deviceId} ? Il ne pourra plus se connecter.`)) return;
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/block-device`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ deviceId, is_active: false })
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            showToast('✅ Appareil bloqué avec succès', 'success');
-            await loadAuthorizedDevices();
-            await loadUnauthorizedDevices();
-        } else {
-            showToast(data.message || '❌ Erreur', 'error');
-        }
-    } catch (error) {
-        showToast('Erreur de connexion', 'error');
-    }
-}
-
-async function unblockDevice(deviceId) {
-    if (!confirm(`✅ Débloquer l'appareil ${deviceId} ? Il pourra à nouveau se connecter.`)) return;
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/block-device`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ deviceId, is_active: true })
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            showToast('✅ Appareil débloqué avec succès', 'success');
-            await loadAuthorizedDevices();
-            await loadUnauthorizedDevices();
-        } else {
-            showToast(data.message || '❌ Erreur', 'error');
-        }
-    } catch (error) {
-        showToast('Erreur de connexion', 'error');
-    }
-}
-
+// Charger les appareils NON AUTORISÉS
 async function loadUnauthorizedDevices() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/authorized-devices`);
+        const response = await fetch(`${API_BASE_URL}/api/unauthorized-devices`);
         const data = await response.json();
         
         const container = document.getElementById('unauthorizedDevicesList');
         if (!container) return;
         
-        if (!data.success) {
-            container.innerHTML = '<p class="error">Erreur de chargement</p>';
-            return;
-        }
-        
-        const blockedDevices = (data.devices || []).filter(d => d.is_active === false);
-        
-        if (blockedDevices.length > 0) {
+        if (data.success && data.devices && data.devices.length > 0) {
             let html = `
                 <div class="table-responsive">
                     <table class="data-table">
                         <thead>
                             <tr>
                                 <th>ID Appareil</th>
-                                <th>Nom du POS</th>
-                                <th>Dernière connexion</th>
-                                <th>Action</th>
+                                <th>Date tentative</th>
+                                <th>Statut</th>
                             </tr>
                         </thead>
                         <tbody>
             `;
             
-            for (const device of blockedDevices) {
+            for (const device of data.devices) {
                 html += `
                     <tr>
-                        <td><code>${escapeHtml(device.device_id || '-')}</code></td>
-                        <td>${escapeHtml(device.pos_name || '-')}</td>
-                        <td>${device.last_seen ? new Date(device.last_seen).toLocaleString() : '-'}</td>
-                        <td><button class="unblock-device-btn" onclick="unblockDevice('${escapeHtml(device.device_id)}')">🔓 Débloquer</button></td>
+                        <td><code>${escapeHtml(device.device_id)}</code></td>
+                        <td>${device.attempt_date ? new Date(device.attempt_date).toLocaleString() : '-'}</td>
+                        <td><span class="agent-blocked">❌ Non autorisé</span></td>
                     </tr>
                 `;
             }
@@ -1805,15 +1757,16 @@ async function loadUnauthorizedDevices() {
             html += '</tbody></table></div>';
             container.innerHTML = html;
         } else {
-            container.innerHTML = '<p class="text-muted">✅ Aucun appareil bloqué</p>';
+            container.innerHTML = '<p class="text-muted">Aucun appareil non autorisé</p>';
         }
     } catch (error) {
-        console.error('Erreur:', error);
+        console.error('Erreur chargement appareils non autorisés:', error);
         const container = document.getElementById('unauthorizedDevicesList');
         if (container) container.innerHTML = '<p class="error">Erreur de chargement</p>';
     }
 }
 
+// Fonction utilitaire pour échapper le HTML
 function escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
@@ -1821,215 +1774,12 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+// Charger TOUTE la section PINs
 async function loadPinsSection() {
     await loadPins();
     await loadAuthorizedDevices();
     await loadUnauthorizedDevices();
 }
-// ========== TRANSACTIONS ADMIN - NOUVELLES FONCTIONS ==========
-
-let currentTransactionsTab = 'admin';
-let currentAdminSubTab = 'all';
-
-function showTransactionsTab(tab) {
-    currentTransactionsTab = tab;
-    
-    // Cacher tous les contenus
-    document.getElementById('adminTransactions').style.display = 'none';
-    document.getElementById('ppTransactions').style.display = 'none';
-    
-    // Désactiver tous les boutons
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    
-    if (tab === 'admin') {
-        document.getElementById('adminTransactions').style.display = 'block';
-        document.querySelectorAll('.tab-btn')[0].classList.add('active');
-        loadAdminTransactions();
-    } else {
-        document.getElementById('ppTransactions').style.display = 'block';
-        document.querySelectorAll('.tab-btn')[1].classList.add('active');
-        loadPPTransactions();
-    }
-}
-
-function showAdminSubTab(subTab) {
-    currentAdminSubTab = subTab;
-    
-    // Désactiver tous les sous-boutons
-    document.querySelectorAll('.sub-tab-btn').forEach(btn => btn.classList.remove('active'));
-    
-    // Activer le bon bouton
-    const btns = document.querySelectorAll('.sub-tab-btn');
-    const index = { 'all': 0, 'sales': 1, 'transfers': 2, 'gains': 3, 'cancellations': 4 };
-    if (btns[index[subTab]]) btns[index[subTab]].classList.add('active');
-    
-    loadAdminTransactions();
-}
-
-async function loadAdminTransactions() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/transactions`);
-        const data = await response.json();
-        
-        if (data.success && data.transactions) {
-            let transactions = data.transactions;
-            const search = document.getElementById('filterAdminTransaction')?.value.toLowerCase();
-            const date = document.getElementById('filterAdminDate')?.value;
-            
-            // Filtrer selon la date
-            if (date) {
-                transactions = transactions.filter(t => new Date(t.date).toISOString().split('T')[0] === date);
-            }
-            
-            // Filtrer selon le sous-onglet
-            switch(currentAdminSubTab) {
-                case 'sales':
-                    transactions = transactions.filter(t => t.type === 'vente');
-                    break;
-                case 'transfers':
-                    transactions = transactions.filter(t => t.type === 'transfert' || t.type === 'alimentation_point');
-                    break;
-                case 'gains':
-                    transactions = transactions.filter(t => t.type === 'gain' || t.type === 'paiement_gagnant');
-                    break;
-                case 'cancellations':
-                    transactions = transactions.filter(t => t.type === 'annulation');
-                    break;
-                default:
-                    break;
-            }
-            
-            // Filtrer par recherche
-            if (search) {
-                transactions = transactions.filter(t => 
-                    t.description?.toLowerCase().includes(search) ||
-                    t.type?.toLowerCase().includes(search)
-                );
-            }
-            
-            // Calculer les totaux
-            let totalVentes = 0;
-            let totalGains = 0;
-            let totalTransferts = 0;
-            let totalAnnulations = 0;
-            
-            transactions.forEach(t => {
-                if (t.type === 'vente') totalVentes += t.amount;
-                if (t.type === 'gain' || t.type === 'paiement_gagnant') totalGains += Math.abs(t.amount);
-                if (t.type === 'transfert') totalTransferts += t.amount;
-                if (t.type === 'annulation') totalAnnulations += Math.abs(t.amount);
-            });
-            
-            const html = `
-                <div class="totals-bar">
-                    <div class="total-item">💰 Ventes: ${totalVentes.toLocaleString()} GDS</div>
-                    <div class="total-item">🏆 Gains: ${totalGains.toLocaleString()} GDS</div>
-                    <div class="total-item">🔄 Transferts: ${totalTransferts.toLocaleString()} GDS</div>
-                    <div class="total-item">❌ Annulations: ${totalAnnulations.toLocaleString()} GDS</div>
-                </div>
-                ${transactions.map(t => `
-                    <div class="transaction-item ${t.type}">
-                        <div class="transaction-header">
-                            <span class="transaction-type">${getTransactionTypeIcon(t.type)} ${t.type.toUpperCase()}</span>
-                            <span class="transaction-date">${new Date(t.date).toLocaleString()}</span>
-                        </div>
-                        <div class="transaction-details">
-                            ${t.description || ''}
-                            ${t.amount ? `<br><strong>Montant: ${Math.abs(t.amount).toLocaleString()} GDS</strong>` : ''}
-                            ${t.agent_name ? `<br>Agent: ${t.agent_name}` : ''}
-                            ${t.payment_point_name ? `<br>Point: ${t.payment_point_name}` : ''}
-                        </div>
-                    </div>
-                `).join('')}
-            `;
-            
-            document.getElementById('adminTransactionsList').innerHTML = html || '<p>Aucune transaction</p>';
-        }
-    } catch (error) {
-        console.error('Erreur:', error);
-        document.getElementById('adminTransactionsList').innerHTML = '<p class="error">Erreur de chargement</p>';
-    }
-}
-
-async function loadPPTransactions() {
-    try {
-        // Récupérer les points de paiement
-        const pointsRes = await fetch(`${API_BASE_URL}/api/payment-points`);
-        const pointsData = await pointsRes.json();
-        
-        // Remplir le select des points
-        const ppSelect = document.getElementById('filterPP');
-        if (ppSelect && pointsData.success) {
-            ppSelect.innerHTML = '<option value="">Tous les points</option>' + 
-                pointsData.paymentPoints.map(p => `<option value="${p.id}">${p.nom}</option>`).join('');
-        }
-        
-        // Récupérer les transactions
-        const response = await fetch(`${API_BASE_URL}/api/transactions`);
-        const data = await response.json();
-        
-        if (data.success && data.transactions) {
-            let transactions = data.transactions;
-            const selectedPP = document.getElementById('filterPP')?.value;
-            const search = document.getElementById('filterPPTransaction')?.value.toLowerCase();
-            const date = document.getElementById('filterPPDate')?.value;
-            
-            // Filtrer par point de paiement
-            if (selectedPP) {
-                transactions = transactions.filter(t => 
-                    t.payment_point_id == selectedPP || 
-                    t.from_point_id == selectedPP || 
-                    t.to_point_id == selectedPP
-                );
-            }
-            
-            // Filtrer par date
-            if (date) {
-                transactions = transactions.filter(t => new Date(t.date).toISOString().split('T')[0] === date);
-            }
-            
-            // Filtrer par recherche
-            if (search) {
-                transactions = transactions.filter(t => 
-                    t.description?.toLowerCase().includes(search) ||
-                    t.type?.toLowerCase().includes(search)
-                );
-            }
-            
-            const html = transactions.map(t => {
-                let pointName = '';
-                if (t.payment_point_name) pointName = t.payment_point_name;
-                if (t.from_point_name) pointName = `De: ${t.from_point_name} → Vers: ${t.to_point_name}`;
-                
-                return `
-                    <div class="transaction-item ${t.type}">
-                        <div class="transaction-header">
-                            <span class="transaction-type">${getTransactionTypeIcon(t.type)} ${t.type.toUpperCase()}</span>
-                            <span class="transaction-date">${new Date(t.date).toLocaleString()}</span>
-                        </div>
-                        <div class="transaction-details">
-                            ${t.description || ''}
-                            ${pointName ? `<br><strong>Point:</strong> ${pointName}` : ''}
-                            ${t.amount ? `<br><strong>Montant: ${Math.abs(t.amount).toLocaleString()} GDS</strong>` : ''}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            
-            document.getElementById('ppTransactionsList').innerHTML = html || '<p>Aucune transaction</p>';
-        }
-    } catch (error) {
-        console.error('Erreur:', error);
-        document.getElementById('ppTransactionsList').innerHTML = '<p class="error">Erreur de chargement</p>';
-    }
-}
-
-// Ajouter les écouteurs d'événements pour les filtres
-document.getElementById('filterAdminTransaction')?.addEventListener('input', loadAdminTransactions);
-document.getElementById('filterAdminDate')?.addEventListener('change', loadAdminTransactions);
-document.getElementById('filterPP')?.addEventListener('change', loadPPTransactions);
-document.getElementById('filterPPTransaction')?.addEventListener('input', loadPPTransactions);
-document.getElementById('filterPPDate')?.addEventListener('change', loadPPTransactions);
 // ========== FONCTIONS UTILITAIRES ==========
 function showToast(message, type = 'info') {
     const toast = document.createElement('div');
@@ -2099,6 +1849,7 @@ function toggleDarkMode() {
 
 // ========== INITIALISATION ==========
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialiser les filtres
     const searchTicket = document.getElementById('searchTicket');
     const filterZone = document.getElementById('filterZone');
     const filterStatus = document.getElementById('filterStatus');
@@ -2116,6 +1867,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (filterPettyCash) filterPettyCash.addEventListener('input', loadPettyCashTransactions);
     if (filterPettyCashType) filterPettyCashType.addEventListener('change', loadPettyCashTransactions);
     
+    // Charger les zones dans le filtre
     const zoneSelect = document.getElementById('filterZone');
     if (zoneSelect) {
         const zones = ['tabarre', 'delmas', 'petion-ville', 'bois-moquette', 'dezermith', 'fermathe', 'clercine', 'carrefour', 'gerald', 'fort-dimanche'];
@@ -2127,10 +1879,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Mode sombre
     initDarkMode();
     const toggleBtn = document.getElementById('darkModeToggle');
     if (toggleBtn) toggleBtn.addEventListener('click', toggleDarkMode);
     
+    // Touche Entrée pour la connexion
     const usernameInput = document.getElementById('username');
     const passwordInput = document.getElementById('password');
     function handleEnter(e) {
@@ -2142,6 +1896,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (usernameInput) usernameInput.addEventListener('keypress', handleEnter);
     if (passwordInput) passwordInput.addEventListener('keypress', handleEnter);
     
+    // Animation CSS pour les toasts
     const style = document.createElement('style');
     style.textContent = `
         @keyframes slideIn {
@@ -2163,24 +1918,11 @@ document.addEventListener('DOMContentLoaded', function() {
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
             font-weight: bold;
         }
-        .block-device-btn, .unblock-device-btn {
-            padding: 4px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            border: none;
-            color: white;
-            font-size: 12px;
-        }
-        .block-device-btn {
-            background-color: #dc3545;
-        }
-        .unblock-device-btn {
-            background-color: #28a745;
-        }
     `;
     document.head.appendChild(style);
 });
 
+// Gestion du redimensionnement
 window.addEventListener('resize', function() {
     const menuToggle = document.querySelector('.menu-toggle');
     if (window.innerWidth <= 768) {

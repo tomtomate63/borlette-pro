@@ -45,8 +45,8 @@
                 <button class="nav-btn" onclick="showSection('dashboard', event)"><i class="fas fa-tachometer-alt"></i> <span>Tableau de bord</span></button>
                 <button class="nav-btn" onclick="showSection('enregistrement', event)"><i class="fas fa-clipboard-list"></i> <span>📋 ENREGISTREMENT</span></button>
                 <button class="nav-btn" onclick="showSection('utilisateurs', event)"><i class="fas fa-users"></i> <span>Utilisateurs</span></button>
-                <button class="nav-btn" onclick="showSection('pointsVente', event)"><i class="fas fa-store"></i> <span>Points de vente</span></button>
                 <button class="nav-btn" onclick="showSection('pins', event)"><i class="fas fa-key"></i> <span>🔐 Gestion des PINs</span></button>
+                <button class="nav-btn" onclick="showSection('pointsVente', event)"><i class="fas fa-store"></i> <span>Points de vente</span></button>
                 <button class="nav-btn" onclick="showSection('limitesBoules', event)"><i class="fas fa-ban"></i> <span>Limites de boules</span></button>
                 <button class="nav-btn" onclick="showSection('rapports', event)"><i class="fas fa-chart-bar"></i> <span>📊 RAPPORTS</span></button>
                 <button class="nav-btn" onclick="showSection('transactions', event)"><i class="fas fa-exchange-alt"></i> <span>Transactions</span></button>
@@ -71,66 +71,65 @@
                     <div id="adminInfo" class="admin-info"></div>
                 </div>
             </div>
-            
             <!-- SECTION GESTION DES PINS -->
-            <div id="pinsSection" class="section" style="display: none;">
-                <!-- Formulaire pour ajouter un PIN -->
-                <div class="card">
-                    <h3><i class="fas fa-plus-circle"></i> ➕ Ajouter un nouveau PIN</h3>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label><i class="fas fa-key"></i> Code PIN (4 à 8 chiffres)</label>
-                            <input type="text" id="newPinCode" placeholder="Ex: 1234 ou 123456" maxlength="8" pattern="\d*">
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-store"></i> Nom du POS</label>
-                            <input type="text" id="newPinPosName" placeholder="Ex: Tabarre 01">
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-map-marker-alt"></i> Zone</label>
-                            <select id="newPinZone">
-                                <option value="tabarre">Tabarre</option>
-                                <option value="delmas">Delmas</option>
-                                <option value="petion-ville">Pétion-Ville</option>
-                                <option value="bois-moquette">Bois Moquette</option>
-                                <option value="dezermith">Dezermith</option>
-                                <option value="fermathe">Fermathe</option>
-                                <option value="clercine">Clercine</option>
-                                <option value="carrefour">Carrefour</option>
-                                <option value="gerald">Gerald</option>
-                                <option value="fort-dimanche">Fort-Dimanche</option>
-                            </select>
-                        </div>
-                    </div>
-                    <button class="btn-primary" onclick="createNewPin()"><i class="fas fa-save"></i> Créer le PIN</button>
-                    <div id="createPinResult" class="form-result"></div>
-                </div>
-                
-                <!-- Liste des PINs existants -->
-                <div class="card">
-                    <h3><i class="fas fa-list"></i> 📋 Liste des codes PIN</h3>
-                    <div id="pinsList" class="table-responsive">
-                        <p class="text-muted">Chargement...</p>
-                    </div>
-                </div>
-                
-                <!-- Appareils AUTORISÉS -->
-                <div class="card">
-                    <h3><i class="fas fa-check-circle" style="color: #28a745;"></i> 📱 Appareils AUTORISÉS</h3>
-                    <div id="authorizedDevicesList" class="table-responsive">
-                        <p class="text-muted">Chargement...</p>
-                    </div>
-                </div>
-                
-                <!-- Appareils NON AUTORISÉS -->
-                <div class="card">
-                    <h3><i class="fas fa-times-circle" style="color: #dc3545;"></i> ⚠️ Appareils NON AUTORISÉS</h3>
-                    <div id="unauthorizedDevicesList" class="table-responsive">
-                        <p class="text-muted">Chargement...</p>
-                    </div>
-                </div>
+<div id="pinsSection" class="section" style="display: none;">
+    
+    <!-- Formulaire pour ajouter un PIN -->
+    <div class="card">
+        <h3><i class="fas fa-plus-circle"></i> ➕ Ajouter un nouveau PIN</h3>
+        <div class="form-row">
+            <div class="form-group">
+                <label><i class="fas fa-key"></i> Code PIN (4 à 8 chiffres)</label>
+                <input type="text" id="newPinCode" placeholder="Ex: 1234 ou 123456" maxlength="8" pattern="\d*">
             </div>
-            
+            <div class="form-group">
+                <label><i class="fas fa-store"></i> Nom du POS</label>
+                <input type="text" id="newPinPosName" placeholder="Ex: Tabarre 01">
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-map-marker-alt"></i> Zone</label>
+                <select id="newPinZone">
+                    <option value="tabarre">Tabarre</option>
+                    <option value="delmas">Delmas</option>
+                    <option value="petion-ville">Pétion-Ville</option>
+                    <option value="bois-moquette">Bois Moquette</option>
+                    <option value="dezermith">Dezermith</option>
+                    <option value="fermathe">Fermathe</option>
+                    <option value="clercine">Clercine</option>
+                    <option value="carrefour">Carrefour</option>
+                    <option value="gerald">Gerald</option>
+                    <option value="fort-dimanche">Fort-Dimanche</option>
+                </select>
+            </div>
+        </div>
+        <button class="btn-primary" onclick="createNewPin()"><i class="fas fa-save"></i> Créer le PIN</button>
+        <div id="createPinResult" class="form-result"></div>
+    </div>
+    
+    <!-- Liste des PINs existants -->
+    <div class="card">
+        <h3><i class="fas fa-list"></i> 📋 Liste des codes PIN</h3>
+        <div id="pinsList" class="table-responsive">
+            <p class="text-muted">Chargement...</p>
+        </div>
+    </div>
+    
+    <!-- Appareils AUTORISÉS -->
+    <div class="card">
+        <h3><i class="fas fa-check-circle" style="color: #28a745;"></i> 📱 Appareils AUTORISÉS</h3>
+        <div id="authorizedDevicesList" class="table-responsive">
+            <p class="text-muted">Chargement...</p>
+        </div>
+    </div>
+    
+    <!-- Appareils NON AUTORISÉS (tentatives échouées) -->
+    <div class="card">
+        <h3><i class="fas fa-times-circle" style="color: #dc3545;"></i> ⚠️ Appareils NON AUTORISÉS</h3>
+        <div id="unauthorizedDevicesList" class="table-responsive">
+            <p class="text-muted">Chargement...</p>
+        </div>
+    </div>
+</div>
             <!-- DASHBOARD -->
             <div id="dashboardSection" class="section">
                 <div class="stats-grid">
@@ -234,64 +233,6 @@
                     </div>
                     <button class="btn-primary" onclick="createAgent()"><i class="fas fa-save"></i> Créer le vendeur</button>
                     <div id="createAgentResult"></div>
-                                        <!-- Permissions -->
-                    <div class="card" style="margin-top: 15px;">
-                        <h3><i class="fas fa-lock"></i> 🔐 Permissions</h3>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>
-                                    <input type="checkbox" id="permManageUsers"> 
-                                    👥 Gérer les utilisateurs
-                                </label>
-                            </div>
-                            <div class="form-group">
-                                <label>
-                                    <input type="checkbox" id="permViewZoneReports"> 
-                                    📊 Voir rapports de zone
-                                </label>
-                            </div>
-                            <div class="form-group">
-                                <label>
-                                    <input type="checkbox" id="permViewPointTickets"> 
-                                    🎫 Voir tickets du point
-                                </label>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>
-                                    <input type="checkbox" id="permMakeDeposit"> 
-                                    💵 Déchargement
-                                </label>
-                            </div>
-                            <div class="form-group">
-                                <label>
-                                    <input type="checkbox" id="permPayTickets"> 
-                                    🏆 Payer tickets gagnants
-                                </label>
-                            </div>
-                            <div class="form-group">
-                                <label>
-                                    <input type="checkbox" id="permTransfer"> 
-                                    🔄 Transfert entre points
-                                </label>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>
-                                    <input type="checkbox" id="permSellTickets"> 
-                                    🎫 Vendre des tickets
-                                </label>
-                            </div>
-                            <div class="form-group">
-                                <label>
-                                    <input type="checkbox" id="permFreeTicket"> 
-                                    🎁 Ticket gratuit client
-                                </label>
-                            </div>
-                        </div>
-                    </div>
                 </div>
                 
                 <div class="card">
@@ -494,44 +435,22 @@
                 </div>
             </div>
             
-                       <!-- TRANSACTIONS -->
+            <!-- TRANSACTIONS -->
             <div id="transactionsSection" class="section" style="display: none;">
-                <!-- Onglets -->
-                <div class="tabs">
-                    <button class="tab-btn active" onclick="showTransactionsTab('admin')">🏛️ Administration</button>
-                    <button class="tab-btn" onclick="showTransactionsTab('pp')">🏪 Points de Paiement</button>
-                </div>
-
-                <!-- Section Administration -->
-                <div id="adminTransactions" class="tab-content active">
-                    <div class="sub-tabs">
-                        <button class="sub-tab-btn active" onclick="showAdminSubTab('all')">📋 Tout</button>
-                        <button class="sub-tab-btn" onclick="showAdminSubTab('sales')">💰 Ventes totales</button>
-                        <button class="sub-tab-btn" onclick="showAdminSubTab('transfers')">🔄 Transferts</button>
-                        <button class="sub-tab-btn" onclick="showAdminSubTab('gains')">🏆 Gains</button>
-                        <button class="sub-tab-btn" onclick="showAdminSubTab('cancellations')">❌ Annulations</button>
-                    </div>
-                    <div class="card">
-                        <div class="filters">
-                            <input type="text" id="filterAdminTransaction" placeholder="Rechercher...">
-                            <input type="date" id="filterAdminDate" placeholder="Date">
-                        </div>
-                        <div id="adminTransactionsList" class="transactions-list"></div>
-                    </div>
-                </div>
-
-                <!-- Section Points de Paiement -->
-                <div id="ppTransactions" class="tab-content" style="display: none;">
+                <div class="card">
+                    <h3><i class="fas fa-history"></i> Historique des transactions</h3>
                     <div class="filters">
-                        <select id="filterPP">
-                            <option value="">Tous les points</option>
+                        <input type="text" id="filterTransaction" placeholder="Rechercher...">
+                        <select id="filterTransactionType">
+                            <option value="">Tous</option>
+                            <option value="vente">Ventes</option>
+                            <option value="dechargement">Déchargements</option>
+                            <option value="transfert">Transferts</option>
+                            <option value="gain">Gains</option>
+                            <option value="annulation">Annulations</option>
                         </select>
-                        <input type="text" id="filterPPTransaction" placeholder="Rechercher...">
-                        <input type="date" id="filterPPDate" placeholder="Date">
                     </div>
-                    <div class="card">
-                        <div id="ppTransactionsList" class="transactions-list"></div>
-                    </div>
+                    <div id="transactionsList"></div>
                 </div>
             </div>
             
@@ -635,6 +554,7 @@
 
             <!-- PETITE CAISSE -->
             <div id="pettyCashSection" class="section" style="display: none;">
+                <!-- Dashboard Petite Caisse -->
                 <div class="petty-cash-dashboard">
                     <div class="stats-grid">
                         <div class="stat-card cash-balance">
@@ -659,9 +579,17 @@
                         </div>
                     </div>
                 </div>
-                
-        
+                                <!-- Formulaire de synchronisation -->
+                <div class="card">
+                    <h3><i class="fas fa-sync-alt"></i> 🔄 Synchronisation</h3>
+                    <p>Synchroniser la petite caisse avec le bénéfice net calculé automatiquement.</p>
+                    <button class="btn-primary" onclick="syncPettyCash()" style="margin-top: 10px;">
+                        <i class="fas fa-sync-alt"></i> Synchroniser avec le bénéfice net
+                    </button>
+                    <div id="syncResult"></div>
+                </div>
 
+                <!-- Formulaire Dépense -->
                 <div class="card">
                     <h3><i class="fas fa-shopping-cart"></i> ➖ Nouvelle dépense</h3>
                     <div class="form-row">
@@ -697,6 +625,7 @@
                     <div id="expenseResult"></div>
                 </div>
 
+                <!-- Formulaire Transfert vers Point de Paiement -->
                 <div class="card">
                     <h3><i class="fas fa-university"></i> 🔄 Alimenter un point de paiement</h3>
                     <div class="form-row">
@@ -719,6 +648,7 @@
                     <div id="transferToPointResult"></div>
                 </div>
 
+                <!-- Formulaire Rechargement -->
                 <div class="card">
                     <h3><i class="fas fa-plus-circle"></i> ➕ Recharger la petite caisse</h3>
                     <div class="form-row">
@@ -745,26 +675,7 @@
                     <div id="topupResult"></div>
                 </div>
 
-                                <!-- Formulaire Renflouement depuis bénéfice net -->
-                <div class="card">
-                    <h3><i class="fas fa-hand-holding-usd"></i> 💰 Renflouer la petite caisse</h3>
-                    <p>Renflouer la petite caisse depuis le bénéfice net de l'entreprise.</p>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Montant (GDS)</label>
-                            <input type="number" id="topupFromProfitAmount" placeholder="Montant à renflouer" min="1">
-                        </div>
-                        <div class="form-group">
-                            <label>Notes (optionnel)</label>
-                            <input type="text" id="topupFromProfitNotes" placeholder="Motif du renflouement">
-                        </div>
-                    </div>
-                    <button class="btn-primary" onclick="topupFromProfit()">
-                        <i class="fas fa-money-bill-wave"></i> Renflouer depuis le bénéfice net
-                    </button>
-                    <div id="topupFromProfitResult"></div>
-                </div>
-
+                <!-- Historique des transactions -->
                 <div class="card">
                     <h3><i class="fas fa-history"></i> 📜 Historique des mouvements</h3>
                     <div class="filters">

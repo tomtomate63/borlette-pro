@@ -1,4 +1,7 @@
-/* ========== STYLE POS - ÉCRAN FIGÉ POUR TERMINAL DE CAISSE ========== */
+/* ============================================================
+   agent-app/style.css — Version corrigée complète
+   ============================================================ */
+
 * {
     margin: 0;
     padding: 0;
@@ -8,13 +11,11 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    /* Écran figé - pas de défilement, pas de rotation */
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
+    /* FIX: position:fixed empêchait le scroll sur la page de connexion.
+       Remplacé par min-height + overflow-x:hidden pour garder l'effet terminal
+       sur appPage sans bloquer la loginPage. */
+    min-height: 100%;
+    overflow-x: hidden;
 }
 
 /* ========== PAGE DE CONNEXION ========== */
@@ -22,17 +23,19 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100%;
+    min-height: 100vh;
     width: 100%;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    /* FIX: overflow-y:auto permet de scroller si le clavier virtuel pousse le contenu */
     overflow-y: auto;
+    padding: 20px;
 }
 
 .login-box {
     background: white;
     padding: 30px;
     border-radius: 20px;
-    width: 90%;
+    width: 100%;
     max-width: 380px;
     text-align: center;
     box-shadow: 0 20px 40px rgba(0,0,0,0.2);
@@ -74,7 +77,8 @@ body {
     font-size: 18px;
     font-weight: bold;
     cursor: pointer;
-    transition: transform 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin-top: 10px;
 }
 
 #loginBtn:hover {
@@ -85,12 +89,19 @@ body {
 .error {
     color: #dc3545;
     margin-top: 10px;
+    font-size: 13px;
+    /* FIX: display:none géré par JS — pas besoin de le déclarer ici,
+       mais on le garde pour la valeur initiale */
     display: none;
 }
 
 /* ========== APPLICATION PRINCIPALE ========== */
 .app-page {
-    height: 100%;
+    /* FIX: hauteur 100dvh (dynamic viewport height) gère correctement
+       les navigateurs mobiles avec barre d'adresse rétractable.
+       Fallback 100vh pour les anciens navigateurs. */
+    height: 100vh;
+    height: 100dvh;
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -98,21 +109,23 @@ body {
     background: #f0f2f5;
 }
 
-/* ========== EN-TÊTE COMPACT ========== */
+/* ========== EN-TÊTE ========== */
 .header {
     background: white;
     padding: 8px 12px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
     gap: 8px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    /* FIX: flex-shrink:0 empêche l'en-tête de se réduire quand le contenu est long */
     flex-shrink: 0;
+    /* FIX: flex-wrap retiré — l'en-tête doit rester sur une seule ligne */
 }
 
+/* FIX: bouton menu retiré du HTML corrigé — règle conservée pour compatibilité */
 .menu-btn {
-    background: none;
+    background: #f0f2f5;
     border: none;
     font-size: 18px;
     cursor: pointer;
@@ -120,10 +133,11 @@ body {
     width: 35px;
     height: 35px;
     border-radius: 8px;
-    background: #f0f2f5;
+    flex-shrink: 0;
 }
 
 .header-title {
+    flex: 1;
     text-align: center;
 }
 
@@ -142,6 +156,8 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
+    /* FIX: flex-shrink:0 empêche les boutons de se compresser */
+    flex-shrink: 0;
 }
 
 .agent-info {
@@ -151,26 +167,53 @@ body {
     background: #f0f2f5;
     padding: 5px 10px;
     border-radius: 20px;
+    align-items: center;
+    /* FIX: masqué sur très petits écrans pour éviter débordement */
+    overflow: hidden;
+    max-width: 180px;
+    white-space: nowrap;
 }
 
 .agent-name {
     font-weight: bold;
     color: #667eea;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.agent-zone, .agent-type {
+.agent-zone,
+.agent-type {
     color: #666;
+    /* FIX: cachés sur mobile pour gagner de la place */
+    display: none;
+}
+
+/* Afficher zone et type sur écrans plus larges */
+@media (min-width: 480px) {
+    .agent-zone,
+    .agent-type {
+        display: inline;
+    }
+    .agent-info {
+        max-width: none;
+    }
 }
 
 .logout-btn {
     background: #dc3545;
     color: white;
     border: none;
-    padding: 5px 10px;
+    padding: 6px 10px;
     border-radius: 8px;
     cursor: pointer;
     font-weight: bold;
     font-size: 12px;
+    flex-shrink: 0;
+    transition: background 0.2s;
+}
+
+.logout-btn:hover {
+    background: #c82333;
 }
 
 .dark-mode-btn {
@@ -184,6 +227,12 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.2s;
+}
+
+.dark-mode-btn:hover {
+    background: #e0e0e0;
 }
 
 /* ========== ALERTE POS BLOQUÉ ========== */
@@ -199,47 +248,8 @@ body {
     flex-shrink: 0;
 }
 
-/* ========== STATISTIQUES COMPACTES ========== */
-.stats-bar {
-    display: flex;
-    gap: 5px;
-    padding: 8px;
-    background: white;
-    margin: 5px;
-    border-radius: 10px;
-    flex-shrink: 0;
-    flex-wrap: wrap;
-}
-
-.stat-item {
-    flex: 1;
-    text-align: center;
-    background: #f8f9fa;
-    padding: 6px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.stat-item i {
-    font-size: 14px;
-    color: #667eea;
-}
-
-.stat-label {
-    font-size: 9px;
-    color: #666;
-    display: block;
-}
-
-.stat-value {
-    font-size: 12px;
-    font-weight: bold;
-    display: block;
-    color: #333;
-}
-
-/* ========== CARTE PRINCIPALE ========== */
+/* ========== CARTE PRINCIPALE (scrollable) ========== */
+/* FIX: .main-card prend tout l'espace disponible entre header et nav-buttons */
 .main-card {
     flex: 1;
     overflow-y: auto;
@@ -248,9 +258,22 @@ body {
     background: white;
     border-radius: 12px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    /* FIX: -webkit-overflow-scrolling pour un scroll fluide sur iOS */
+    -webkit-overflow-scrolling: touch;
 }
 
-.main-card h3 {
+/* FIX: classe .card générique pour les sections Déchargement et Annulation
+   qui utilisent .card dans le HTML corrigé */
+.card {
+    background: white;
+    border-radius: 12px;
+    padding: 12px;
+    margin: 5px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.main-card h3,
+.card h3 {
     color: #667eea;
     margin-bottom: 12px;
     padding-bottom: 8px;
@@ -271,20 +294,31 @@ body {
     margin-bottom: 4px;
     font-weight: bold;
     color: #333;
-    font-size: 10px;
+    font-size: 11px;
 }
 
-.form-group input, .form-group select {
+.form-group input,
+.form-group select {
     width: 100%;
-    padding: 6px;
+    padding: 8px;
     border: 2px solid #e0e0e0;
     border-radius: 8px;
-    font-size: 12px;
+    font-size: 13px;
     transition: border-color 0.3s;
     background: white;
+    /* FIX: font-size minimum 16px sur mobile pour éviter le zoom auto iOS */
 }
 
-.form-group input:focus, .form-group select:focus {
+@media (max-width: 480px) {
+    .form-group input,
+    .form-group select {
+        font-size: 16px; /* empêche le zoom iOS */
+        padding: 6px;
+    }
+}
+
+.form-group input:focus,
+.form-group select:focus {
     outline: none;
     border-color: #667eea;
 }
@@ -293,6 +327,8 @@ body {
     display: flex;
     gap: 8px;
     margin-bottom: 10px;
+    /* FIX: align-items:flex-end aligne le bouton Ajouter avec le bas des inputs */
+    align-items: flex-end;
     flex-wrap: wrap;
 }
 
@@ -311,9 +347,12 @@ body {
     cursor: pointer;
     font-weight: bold;
     height: 38px;
-    transition: all 0.3s;
+    min-width: 80px;
+    flex-shrink: 0;
+    transition: all 0.2s;
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 5px;
     font-size: 12px;
 }
@@ -323,7 +362,7 @@ body {
     transform: translateY(-2px);
 }
 
-/* ========== SÉLECTION DES NUMÉROS ========== */
+/* ========== NUMÉROS SÉLECTIONNÉS ========== */
 .selected-numbers {
     background: #f8f9fa;
     padding: 10px;
@@ -338,9 +377,10 @@ body {
 }
 
 .items-list {
-    max-height: 120px;
+    max-height: 130px;
     overflow-y: auto;
     margin: 8px 0;
+    -webkit-overflow-scrolling: touch;
 }
 
 .empty-message {
@@ -362,13 +402,11 @@ body {
     font-size: 11px;
 }
 
-.item-row.type-simple { border-left-color: #28a745; }
-.item-row.type-three { border-left-color: #ffc107; }
-.item-row.type-five { border-left-color: #dc3545; }
+.item-row.type-simple  { border-left-color: #28a745; }
+.item-row.type-three   { border-left-color: #ffc107; }
+.item-row.type-five    { border-left-color: #dc3545; }
 
-.item-number {
-    font-weight: bold;
-}
+.item-number { font-weight: bold; }
 
 .item-type {
     font-size: 9px;
@@ -385,10 +423,17 @@ body {
     background: #dc3545;
     color: white;
     border: none;
-    padding: 3px 8px;
+    padding: 4px 8px;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 10px;
+    font-size: 11px;
+    /* FIX: taille minimum pour le toucher sur mobile */
+    min-width: 28px;
+    min-height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 }
 
 .total-row {
@@ -423,11 +468,13 @@ body {
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
+    /* FIX: min-height pour facilité le toucher */
+    min-height: 44px;
 }
 
 .print-btn:hover {
@@ -444,16 +491,69 @@ body {
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 5px;
+    min-height: 44px;
 }
 
 .cancel-sale-btn:hover {
     background: #5a6268;
     transform: translateY(-2px);
+}
+
+/* ========== DÉCHARGEMENT / ANNULATION ========== */
+.deposit-btn,
+.cancel-ticket-btn {
+    background: #17a2b8;
+    color: white;
+    padding: 0 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    height: 38px;
+    min-width: 100px;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 12px;
+}
+
+.cancel-ticket-btn {
+    background: #dc3545;
+}
+
+.deposit-btn:hover    { background: #138496; }
+.cancel-ticket-btn:hover { background: #c82333; }
+
+.deposit-result,
+.cancel-result {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    /* FIX: display:none initial géré ici, JS bascule success/error */
+    display: none;
+}
+
+.deposit-result.success,
+.cancel-result.success {
+    background: #d4edda;
+    color: #155724;
+    display: block;
+}
+
+.deposit-result.error,
+.cancel-result.error {
+    background: #f8d7da;
+    color: #721c24;
+    display: block;
 }
 
 /* ========== BOUTONS DE NAVIGATION BAS ========== */
@@ -469,18 +569,34 @@ body {
 
 .nav-btn-bottom {
     flex: 1;
-    padding: 10px;
+    padding: 10px 5px;
     background: #667eea;
     color: white;
     border: none;
     border-radius: 8px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: bold;
     cursor: pointer;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 5px;
+    gap: 4px;
+    transition: background 0.2s, transform 0.1s;
+    min-height: 50px;
+}
+
+.nav-btn-bottom i {
+    font-size: 16px;
+}
+
+.nav-btn-bottom:hover {
+    background: #5568d4;
+    transform: translateY(-1px);
+}
+
+.nav-btn-bottom:active {
+    transform: translateY(0);
 }
 
 /* ========== POPUPS ========== */
@@ -502,7 +618,7 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 15px;
-    background: #667eea;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     flex-shrink: 0;
 }
@@ -510,20 +626,36 @@ body {
 .popup-header h3 {
     margin: 0;
     font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .close-popup {
-    background: none;
+    background: rgba(255,255,255,0.2);
     border: none;
     color: white;
-    font-size: 20px;
+    font-size: 18px;
     cursor: pointer;
+    /* FIX: taille minimum pour le toucher */
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.close-popup:hover {
+    background: rgba(255,255,255,0.35);
 }
 
 .popup-content {
     flex: 1;
     overflow-y: auto;
     padding: 15px;
+    -webkit-overflow-scrolling: touch;
 }
 
 /* ========== TICKETS ========== */
@@ -531,7 +663,6 @@ body {
     display: flex;
     gap: 8px;
     margin-bottom: 15px;
-    flex-wrap: wrap;
 }
 
 .tab-btn {
@@ -541,10 +672,11 @@ body {
     border-radius: 20px;
     cursor: pointer;
     font-size: 12px;
-    transition: all 0.3s;
+    transition: all 0.2s;
     display: flex;
     align-items: center;
     gap: 5px;
+    white-space: nowrap;
 }
 
 .tab-btn.active {
@@ -552,9 +684,15 @@ body {
     color: white;
 }
 
+.tab-btn:hover:not(.active) {
+    background: #ddd;
+}
+
 .tickets-list {
-    max-height: calc(100vh - 150px);
+    /* FIX: calc corrigé — soustrait header popup (~60px) + tabs (~50px) + padding */
+    max-height: calc(100dvh - 130px);
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .ticket-item {
@@ -564,22 +702,13 @@ body {
     border-radius: 8px;
     border-left: 3px solid #667eea;
     font-size: 11px;
+    transition: transform 0.1s;
 }
 
-.ticket-item.winner {
-    border-left-color: #28a745;
-    background: #e8f5e9;
-}
-
-.ticket-item.cancelled {
-    border-left-color: #dc3545;
-    background: #fff5f5;
-}
-
-.ticket-item.free {
-    border-left-color: #ffc107;
-    background: #fff8e1;
-}
+.ticket-item:hover { transform: translateX(3px); }
+.ticket-item.winner    { border-left-color: #28a745; background: #e8f5e9; }
+.ticket-item.cancelled { border-left-color: #dc3545; background: #fff5f5; }
+.ticket-item.free      { border-left-color: #ffc107; background: #fff8e1; }
 
 .ticket-header {
     display: flex;
@@ -597,14 +726,35 @@ body {
     border-radius: 6px;
 }
 
+.ticket-item-detail { font-size: 11px; padding: 2px 0; }
+.ticket-item-detail.type-simple { color: #28a745; }
+.ticket-item-detail.type-three  { color: #b8860b; }
+.ticket-item-detail.type-five   { color: #dc3545; }
+
+.item-number-ticket { font-weight: bold; }
+.item-type-ticket   { font-size: 9px; opacity: 0.7; }
+
 .ticket-footer {
     margin-top: 8px;
     font-size: 10px;
     color: #666;
+    line-height: 1.6;
+}
+
+.cancel-info {
+    margin-top: 6px;
+    padding: 5px 8px;
+    background: #f8d7da;
+    border-radius: 5px;
+    color: #721c24;
+    font-size: 10px;
 }
 
 /* ========== BADGES ========== */
-.winner-badge, .cancelled-badge, .pending-badge, .free-badge {
+.winner-badge,
+.cancelled-badge,
+.pending-badge,
+.free-badge {
     display: inline-flex;
     align-items: center;
     gap: 4px;
@@ -612,17 +762,18 @@ body {
     border-radius: 20px;
     font-size: 10px;
     font-weight: bold;
+    white-space: nowrap;
 }
 
-.winner-badge { background: #28a745; color: white; }
+.winner-badge    { background: #28a745; color: white; }
 .cancelled-badge { background: #dc3545; color: white; }
-.pending-badge { background: #6c757d; color: white; }
-.free-badge { background: #ffc107; color: #333; }
+.pending-badge   { background: #6c757d; color: white; }
+.free-badge      { background: #ffc107; color: #333;  }
 
 .free-number {
     font-size: 14px;
     font-weight: bold;
-    color: #ffc107;
+    color: #b8860b;
 }
 
 /* ========== RAPPORT ========== */
@@ -636,17 +787,15 @@ body {
 .rapport-item {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     padding: 10px;
     border-bottom: 1px solid #e0e0e0;
 }
 
-.rapport-item span {
-    font-weight: normal;
-}
+.rapport-item:last-child { border-bottom: none; }
 
-.rapport-item strong {
-    color: #667eea;
-}
+.rapport-item span { font-weight: normal; color: #666; }
+.rapport-item strong { color: #667eea; font-size: 14px; }
 
 .print-report-btn {
     width: 100%;
@@ -662,9 +811,13 @@ body {
     align-items: center;
     justify-content: center;
     gap: 8px;
+    transition: background 0.2s;
+    min-height: 44px;
 }
 
-/* ========== BOUTON TICKET GRATUIT ========== */
+.print-report-btn:hover { background: #218838; }
+
+/* ========== TICKET GRATUIT ========== */
 .free-ticket-btn {
     background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
     color: white;
@@ -676,7 +829,13 @@ body {
     cursor: pointer;
     width: 100%;
     margin-top: 10px;
-    transition: all 0.3s;
+    transition: all 0.2s;
+    min-height: 44px;
+}
+
+.free-ticket-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255,107,107,0.4);
 }
 
 .free-ticket-result {
@@ -684,6 +843,7 @@ body {
     padding: 10px;
     border-radius: 8px;
     text-align: center;
+    font-size: 13px;
     display: none;
 }
 
@@ -709,41 +869,28 @@ body.dark-mode .app-page {
 }
 
 body.dark-mode .header,
-body.dark-mode .stats-bar,
-body.dark-mode .nav-buttons,
+body.dark-mode .nav-buttons {
+    background: #16213e;
+}
+
 body.dark-mode .main-card,
+body.dark-mode .card,
 body.dark-mode .popup-page {
     background: #16213e;
     color: #e0e0e0;
 }
 
-body.dark-mode .header-title h2 {
-    color: #ff6b6b;
-}
+body.dark-mode .header-title h2 { color: #ff6b6b; }
 
-body.dark-mode .agent-info {
-    background: #2a2a4e;
-}
+body.dark-mode .agent-info  { background: #2a2a4e; }
+body.dark-mode .agent-name  { color: #ff6b6b; }
+body.dark-mode .agent-zone,
+body.dark-mode .agent-type  { color: #aaa; }
 
-body.dark-mode .agent-name {
-    color: #ff6b6b;
-}
+body.dark-mode .menu-btn,
+body.dark-mode .dark-mode-btn { background: #2a2a4e; color: #e0e0e0; }
 
-body.dark-mode .stat-item {
-    background: #2a2a4e;
-}
-
-body.dark-mode .stat-label {
-    color: #aaa;
-}
-
-body.dark-mode .stat-value {
-    color: #ff6b6b;
-}
-
-body.dark-mode .form-group label {
-    color: #ff6b6b;
-}
+body.dark-mode .form-group label { color: #ff6b6b; }
 
 body.dark-mode .form-group input,
 body.dark-mode .form-group select {
@@ -752,13 +899,20 @@ body.dark-mode .form-group select {
     color: #e0e0e0;
 }
 
-body.dark-mode .selected-numbers {
-    background: #2a2a4e;
-}
+body.dark-mode .selected-numbers { background: #2a2a4e; }
+body.dark-mode .selected-numbers h4 { color: #ff6b6b; }
 
 body.dark-mode .item-row {
     background: #0f0f1a;
     color: #e0e0e0;
+}
+
+body.dark-mode .total-row { border-top-color: #2a2a3e; }
+
+body.dark-mode .main-card h3,
+body.dark-mode .card h3 {
+    color: #ff6b6b;
+    border-bottom-color: #ff6b6b;
 }
 
 body.dark-mode .ticket-item {
@@ -766,82 +920,66 @@ body.dark-mode .ticket-item {
     color: #e0e0e0;
 }
 
-body.dark-mode .ticket-item.winner {
-    background: #1a3a1a;
-}
+body.dark-mode .ticket-item.winner    { background: #1a3a1a; }
+body.dark-mode .ticket-item.cancelled { background: #3a1a1a; }
+body.dark-mode .ticket-item.free      { background: #3a3a1a; }
 
-body.dark-mode .ticket-item.cancelled {
-    background: #3a1a1a;
-}
+body.dark-mode .ticket-items { background: rgba(255,255,255,0.05); }
+body.dark-mode .ticket-footer { color: #aaa; }
 
-body.dark-mode .ticket-item.free {
-    background: #3a3a1a;
-}
+body.dark-mode .tab-btn { background: #2a2a4e; color: #e0e0e0; }
+body.dark-mode .tab-btn.active { background: #667eea; color: white; }
 
-body.dark-mode .rapport-stats {
-    background: #2a2a4e;
-}
+body.dark-mode .rapport-stats { background: #2a2a4e; }
+body.dark-mode .rapport-item  { border-bottom-color: #3a3a5e; }
+body.dark-mode .rapport-item span   { color: #aaa; }
+body.dark-mode .rapport-item strong { color: #ff6b6b; }
 
-body.dark-mode .rapport-item {
-    border-bottom-color: #3a3a5e;
-}
-
-body.dark-mode .login-box {
-    background: #16213e;
-}
-
-body.dark-mode .login-box h1 {
-    color: #ff6b6b;
-}
-
+body.dark-mode .login-box { background: #16213e; }
+body.dark-mode .login-box h1 { color: #ff6b6b; }
+body.dark-mode .login-box p  { color: #aaa; }
 body.dark-mode .login-box input {
     background: #0f0f1a;
     border-color: #2a2a3e;
     color: #e0e0e0;
 }
 
-/* ========== EMPÊCHER LA ROTATION ========== */
-@media (orientation: landscape) {
-    body {
-        transform: rotate(0deg) !important;
-    }
+body.dark-mode .popup-header {
+    background: linear-gradient(135deg, #2a2a4e 0%, #1a1a3e 100%);
 }
+
+body.dark-mode .nav-btn-bottom { background: #2a2a4e; }
+body.dark-mode .nav-btn-bottom:hover { background: #3a3a6e; }
 
 /* ========== RESPONSIVE ========== */
 @media (max-width: 480px) {
-    .header {
-        padding: 5px 8px;
-    }
-    
+    .header { padding: 5px 8px; }
+
+    .header-title h2 { font-size: 14px; }
+
     .agent-info {
         font-size: 9px;
         padding: 3px 6px;
+        max-width: 120px;
     }
-    
-    .stat-item {
-        padding: 4px;
-    }
-    
-    .stat-value {
-        font-size: 10px;
-    }
-    
+
     .nav-btn-bottom {
-        padding: 8px;
+        padding: 6px 3px;
         font-size: 10px;
+        min-height: 44px;
     }
-    
-    .form-group input, .form-group select {
-        font-size: 11px;
-    }
-    
-    .add-btn {
-        height: 34px;
-        font-size: 11px;
-    }
-    
-    .print-btn {
-        padding: 8px;
-        font-size: 12px;
-    }
+
+    .nav-btn-bottom i { font-size: 14px; }
+
+    .add-btn { height: 36px; min-width: 70px; }
+
+    .print-btn { padding: 8px; font-size: 12px; }
+
+    .total-amount { font-size: 16px; }
+
+    .ticket-tabs { flex-wrap: wrap; }
 }
+
+/* FIX: supprimé le bloc @media orientation:landscape inutile
+   (transform:rotate(0deg) ne force pas l'orientation, c'est au manifest PWA
+   de le faire via "orientation": "portrait") */
