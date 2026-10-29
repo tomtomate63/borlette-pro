@@ -758,7 +758,7 @@ async function handleRequest(req, res) {
             matricule_fiscale: body.matriculeFiscale,
             permis: body.permis,
             date_inscription: new Date().toISOString(),
-            type: 'vendeur',
+            type: body.type || 'vendeur',
             is_admin: false
         };
         
