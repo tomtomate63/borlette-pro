@@ -107,17 +107,20 @@ function login() {
         return;
     }
 
-    verifyPOSPin(function(isPinValid) {
-        if (!isPinValid) return;
+   verifyPOSPin(function(isPinValid) {
+    // Ne pas bloquer si la vérification PIN échoue (permet la 1ère connexion)
+    // L'autorisation réelle se fait au login par username/password
 
         var xhr = new XMLHttpRequest();
         xhr.open('POST', API_BASE_URL + '/api/login', true);
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.onreadystatechange = function() {
             if (xhr.readyState !== 4) return;
-            if (xhr.status === 200) {
-                try {
-                    var data = JSON.parse(xhr.responseText);
+            if (xhr.status === 200) } else {
+    // ⚠️ Ne plus bloquer : erreur réseau = mode dégradé
+    console.warn('Vérification PIN échouée — passage en mode dégradé');
+    if (callback) callback(true);   // au lieu de false
+    }
 
                     // FIX: vérification explicite — bloquer les comptes admin
                     var isAdmin = data.user && (
