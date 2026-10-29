@@ -1743,6 +1743,7 @@ async function handleRequest(req, res) {
             res.end(JSON.stringify({ success: false, message: 'Le PIN doit contenir 4 à 8 chiffres uniquement' }));
             return;
         }
+        module.exports = server;
         
         let { data: existing, error: existError } = await supabase
             .from('pos_pins')
