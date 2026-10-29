@@ -58,7 +58,7 @@ function calculateWin(item, drawingResult) {
     return { winAmount: 0, winType: null };
 }
 
-const server = http.createServer(async (req, res) => {
+async function handleRequest(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Admin-Key');
@@ -1966,13 +1966,22 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(404, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ message: "Route non trouvée" }));
 });
+// ============================================================
+// MODE VERCEL : on exporte directement la fonction handler
+// MODE LOCAL  : on lance un server http en écoute sur un port
+// ============================================================
 
 const PORT = process.env.PORT || 3000;
 
-if (process.env.NODE_ENV !== 'production') {
+// Toujours créer le serveur HTTP (utile en local, ignoré sur Vercel)
+const server = http.createServer(handleRequest);
+
+// ⚠️ Export compatible @vercel/node = fonction (req, res)
+module.exports = handleRequest;
+
+// Écoute UNIQUEMENT en local (pas sur Vercel)
+if (!process.env.VERCEL) {
     server.listen(PORT, () => {
         console.log(`✅ Serveur Borlette avec Supabase actif sur port: ${PORT}`);
     });
 }
-
-module.exports = server;
