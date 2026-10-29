@@ -175,14 +175,31 @@ async function handleRequest(req, res) {
         
         console.log('Vérification PIN:', pinCode, 'Device:', deviceId);
         
-        let { data: validPin, error } = await supabase
-            .from('pos_pins')
-            .select('*')
-            .eq('pin_code', pinCode)
-            .eq('is_active', true)
-            .single();
-        
-        if (validPin) {
+        let { data: anyPin } = await supabase
+    .from('pos_pins')
+    .select('id')
+    .limit(1);
+
+// Si aucun PIN n'existe en base : autoriser (mode "première installation")
+if (!anyPin || anyPin.length === 0) {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ 
+        success: true, 
+        message: 'Aucun PIN configuré — accès libre',
+        posName: posName || 'POS',
+        zone: null
+    }));
+    return;
+}
+
+let { data: validPin, error } = await supabase
+    .from('pos_pins')
+    .select('*')
+    .eq('pin_code', pinCode)
+    .eq('is_active', true)
+    .single();
+
+if (validPin) {
             await supabase
                 .from('authorized_devices')
                 .upsert({ 
